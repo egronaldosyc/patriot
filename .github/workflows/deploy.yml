@@ -2,7 +2,8 @@ name: Сборка и публикация
 
 on:
   push:
-    branches: [main]
+    # main — правки сайта и выпуски; claude/** — выпуски от облачной рутины, если ей разрешён пуш только в свою ветку.
+    branches: [main, 'claude/**']
   schedule:
     # 00:05 по Москве (21:05 UTC): на главной сменяется «сегодняшний» выпуск.
     - cron: '5 21 * * *'
@@ -10,8 +11,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Выпуск и правки кода могут прийти почти одновременно — публикации идут по очереди, не отменяя друг друга.
 concurrency:
@@ -22,8 +21,33 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write
+      pages: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # Из ветки рутины в main переносятся только файлы выпусков data/YYYY-MM-DD.json — код сайта так не меняется.
+      - name: Приём выпусков из ветки рутины
+        if: github.event_name == 'push' && github.ref_name != 'main'
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git fetch origin "$BRANCH"
+          files=$(git diff --name-only --diff-filter=AM HEAD "origin/$BRANCH" -- 'data/' | grep -E '^data/[0-9]{4}-[0-9]{2}-[0-9]{2}\.json$' || true)
+          if [ -n "$files" ]; then
+            git checkout "origin/$BRANCH" -- $files
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m "Выпуски: $(echo $files | sed 's#data/##g; s#\.json##g')"
+            git push origin HEAD:main
+          else
+            echo 'Новых выпусков в ветке нет'
+          fi
+          git push origin --delete "$BRANCH" || true
 
       - uses: actions/setup-node@v7
         with:
@@ -52,6 +76,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
