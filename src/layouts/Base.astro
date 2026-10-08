@@ -1,0 +1,132 @@
+---
+import '@fontsource/oswald/400.css';
+import '@fontsource/oswald/500.css';
+import '@fontsource/oswald/600.css';
+import '@fontsource/pt-serif/400.css';
+import '@fontsource/pt-serif/400-italic.css';
+import '@fontsource/pt-serif/700.css';
+import '@fontsource/pt-sans-narrow/400.css';
+import '@fontsource/pt-sans-narrow/700.css';
+import '../styles/tokens.css';
+import '../styles/global.css';
+
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { href, absolute } from '../lib/paths.js';
+
+interface Switcher {
+  label: string;
+  newer?: { href: string; label: string } | null;
+  older?: { href: string; label: string } | null;
+}
+
+interface Props {
+  title: string;
+  description?: string | null;
+  path: string;
+  ogImage?: string;
+  type?: 'website' | 'article';
+  published?: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  switcher?: Switcher;
+  canonicalPath?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  path,
+  ogImage = 'og/default.png',
+  type = 'website',
+  published,
+  jsonLd,
+  switcher,
+  canonicalPath,
+  noindex = false,
+} = Astro.props;
+
+const site = Astro.site ?? new URL('http://localhost:4321');
+const canonical = absolute(canonicalPath ?? path, site);
+const ogUrl = absolute(ogImage, site);
+const desc = description ?? 'Ежедневная военно-историческая летопись: памятные даты, Великая Отечественная, армия и флот, герои, арсенал.';
+const base = href('');
+const speculation = JSON.stringify({
+  prerender: [{ where: { href_matches: `${base}*` }, eagerness: 'moderate' }],
+});
+const ld = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
+---
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#0d0f12" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f4f1ea" media="(prefers-color-scheme: light)" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="generator" content={Astro.generator} />
+
+    <meta property="og:site_name" content="Патриот" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
+    {published && <meta property="article:published_time" content={published} />}
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href={href('favicon.svg')} type="image/svg+xml" />
+    <link rel="icon" href={href('icons/32.png')} sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href={href('icons/180.png')} />
+    <link rel="manifest" href={href('manifest.webmanifest')} />
+    <link rel="alternate" type="application/rss+xml" title="Патриот — выпуски" href={href('feed.xml')} />
+    <link rel="sitemap" href={href('sitemap-index.xml')} />
+
+    {ld && <script type="application/ld+json" set:html={ld} />}
+
+    <script is:inline>
+      // Тема до первой отрисовки, без мигания. Хранилище может быть недоступно — тогда системная.
+      (function () {
+        var d = document.documentElement, t = null;
+        try {
+          t = localStorage.getItem('patriot-theme');
+          if (t === 'light' || t === 'dark') d.dataset.theme = t;
+          else t = null;
+        } catch (e) {}
+        d.dataset.themeResolved = t || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      })();
+      // Картинка со стороннего сайта не загрузилась — прячем её, подпись и ссылка остаются.
+      document.addEventListener(
+        'error',
+        function (e) {
+          var el = e.target;
+          if (!el || el.tagName !== 'IMG' || !el.hasAttribute('data-hide-on-error')) return;
+          var fig = el.closest('.figure, [data-media]');
+          if (fig) fig.classList.add('is-broken');
+          else el.hidden = true;
+        },
+        true
+      );
+    </script>
+    <script type="speculationrules" is:inline set:html={speculation} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">К содержанию</a>
+    <SiteHeader path={path} switcher={switcher} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter />
+    <script>
+      import '../scripts/site.js';
+    </script>
+  </body>
+</html>

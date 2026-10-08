@@ -1,0 +1,116 @@
+---
+import Icon from './Icon.astro';
+import { href, sectionHref } from '../lib/paths.js';
+import { SECTION_ORDER, SECTION_META } from '../lib/normalize.js';
+---
+<footer class="site-footer no-print">
+  <div class="wrap">
+    <hr class="rule-double" />
+    <div class="grid">
+      <div class="brand">
+        <p class="kicker">Военно-историческая летопись</p>
+        <p class="mast">Патриот</p>
+        <p class="about">
+          Каждый день — памятные даты, события Великой Отечественной, история армии и флота, имена героев. Материалы
+          собираются из открытых источников и сверяются; у каждого — ссылка на первоисточник.
+        </p>
+      </div>
+      <nav class="col" aria-label="Разделы">
+        <p class="label dim">Разделы</p>
+        <ul>
+          {SECTION_ORDER.map((id) => <li><a href={sectionHref(id)}>{SECTION_META[id].short}</a></li>)}
+        </ul>
+      </nav>
+      <nav class="col" aria-label="Сайт">
+        <p class="label dim">Сайт</p>
+        <ul>
+          <li><a href={href('')}>Выпуск дня</a></li>
+          <li><a href={href('archive/')}>Архив</a></li>
+          <li><a href={href('search/')}>Поиск</a></li>
+          <li><a href={href('about/')}>О проекте</a></li>
+          <li><a href={href('feed.xml')}><Icon name="rss" /> RSS</a></li>
+          <li>
+            <a href="https://t.me/patriotZ2021" target="_blank" rel="noopener noreferrer"><Icon name="telegram" /> Telegram</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <p class="colophon">
+      Время московское. Фотографии — по ссылкам на страницы описания файлов, с указанием автора и лицензии.
+      Сведения о текущих событиях приводятся с указанием, кто их сообщает.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: var(--section-gap);
+    padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+    font-family: var(--font-ui);
+  }
+
+  .grid {
+    display: grid;
+    gap: 40px;
+    padding-top: 48px;
+  }
+
+  @media (min-width: 820px) {
+    .grid {
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 64px;
+    }
+  }
+
+  .mast {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1;
+    letter-spacing: var(--track-mast);
+    text-transform: uppercase;
+    color: var(--text-strong);
+    margin-top: 10px;
+  }
+
+  .about {
+    margin-top: 18px;
+    max-width: 46ch;
+    font-family: var(--font-text);
+    font-size: 0.975rem;
+    color: var(--muted);
+  }
+
+  .col ul {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .col a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    font-size: var(--fs-ui);
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .col a:hover {
+    color: var(--brass);
+  }
+
+  .colophon {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule-soft);
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--dim);
+    max-width: 90ch;
+  }
+</style>

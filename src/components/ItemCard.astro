@@ -1,0 +1,111 @@
+---
+import { dayMonth, parts } from '../lib/dates.js';
+import { issueHref } from '../lib/paths.js';
+
+interface Props {
+  issue: any;
+  item: any;
+}
+const { issue, item } = Astro.props;
+---
+<a class="ic" href={issueHref(issue.date, item.anchor)}>
+  <span class="ic__body">
+    <span class="ic__meta label">
+      <span class="ic__issue">Выпуск от {dayMonth(issue.date)} {parts(issue.date).y}</span>
+      {item.dateLabel && <span class="ic__label">{item.dateLabel}</span>}
+    </span>
+    <span class="ic__title">{item.title}</span>
+    {item.text && <span class="ic__text">{item.text}</span>}
+  </span>
+  {
+    item.image?.url && (
+      <span class="ic__media" data-media>
+        <img src={item.image.url} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-hide-on-error />
+      </span>
+    )
+  }
+</a>
+
+<style>
+  .ic {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    text-decoration: none;
+  }
+
+  @media (min-width: 640px) {
+    .ic:has(.ic__media) {
+      grid-template-columns: 1fr 200px;
+      gap: 28px;
+    }
+  }
+
+  .ic__body {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+  }
+
+  .ic__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    color: var(--dim);
+  }
+
+  .ic__label {
+    color: var(--brass);
+  }
+
+  .ic__title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    line-height: 1.22;
+    color: var(--text-strong);
+    text-wrap: balance;
+    transition: color var(--dur-fast) var(--ease-std);
+  }
+
+  .ic:hover .ic__title {
+    color: var(--brass);
+  }
+
+  .ic__text {
+    color: var(--muted);
+    font-size: 0.975rem;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .ic__media {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+  }
+
+  .ic__media.is-broken {
+    display: none;
+  }
+
+  .ic__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 22%;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .ic:hover .ic__media img {
+      transform: scale(1.04);
+    }
+  }
+</style>

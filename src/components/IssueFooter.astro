@@ -1,0 +1,248 @@
+---
+import Icon from './Icon.astro';
+import { longDate, mskStamp } from '../lib/dates.js';
+import { issueHref } from '../lib/paths.js';
+import { neighbours } from '../lib/issues.js';
+
+interface Props {
+  issue: any;
+}
+const { issue } = Astro.props;
+const { newer, older } = neighbours(issue.date);
+const credits = issue.credits;
+---
+{
+  credits.length > 0 && (
+    <section class="credits wrap" aria-labelledby="credits-title">
+      <details class="credits__box">
+        <summary>
+          <span>
+            <span class="kicker">Атрибуция</span>
+            <span class="credits__title" id="credits-title">Источники фотографий</span>
+          </span>
+          <span class="credits__n label num">{credits.length}</span>
+        </summary>
+        <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица источников фотографий">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Подпись</th>
+                <th scope="col">Автор</th>
+                <th scope="col">Лицензия</th>
+                <th scope="col">Файл</th>
+              </tr>
+            </thead>
+            <tbody>
+              {credits.map((c: any) => (
+                <tr>
+                  <td>{c.caption ?? '—'}</td>
+                  <td>{c.author ?? '—'}</td>
+                  <td>{c.license ?? '—'}</td>
+                  <td>
+                    {c.pageUrl ? (
+                      <a href={c.pageUrl} target="_blank" rel="noopener noreferrer">Страница файла</a>
+                    ) : c.url ? (
+                      <a href={c.url} target="_blank" rel="noopener noreferrer">Файл</a>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+  )
+}
+
+<nav class="pager wrap no-print" aria-label="Другие выпуски">
+  {
+    older ? (
+      <a class="pager__card" href={issueHref(older.date)} rel="prev">
+        <span class="label pager__dir">
+          <Icon name="chevron-left" /> Предыдущий выпуск
+        </span>
+        <span class="pager__date kicker">{longDate(older.date)}</span>
+        <span class="pager__title">{older.title}</span>
+      </a>
+    ) : (
+      <span class="pager__card is-off" />
+    )
+  }
+  {
+    newer ? (
+      <a class="pager__card pager__card--next" href={issueHref(newer.date)} rel="next">
+        <span class="label pager__dir">
+          Следующий выпуск <Icon name="chevron-right" />
+        </span>
+        <span class="pager__date kicker">{longDate(newer.date)}</span>
+        <span class="pager__title">{newer.title}</span>
+      </a>
+    ) : (
+      <span class="pager__card is-off" />
+    )
+  }
+</nav>
+
+{issue.generatedAt && <p class="stamp wrap label">Выпуск подготовлен {mskStamp(issue.generatedAt)} по московскому времени</p>}
+
+<style>
+  .credits {
+    margin-top: var(--section-gap);
+  }
+
+  .credits__box {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .credits__box summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 0;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .credits__box summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .credits__box summary > span:first-child {
+    display: grid;
+    gap: 6px;
+  }
+
+  .credits__title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: 0.02em;
+    color: var(--text-strong);
+  }
+
+  .credits__n {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+  }
+
+  .credits__n::after {
+    content: '+';
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--brass);
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+
+  .credits__box[open] .credits__n::after {
+    transform: rotate(45deg);
+  }
+
+  .tablewrap {
+    overflow-x: auto;
+    padding-bottom: 20px;
+  }
+
+  table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-family: var(--font-ui);
+    font-size: 0.9375rem;
+  }
+
+  th,
+  td {
+    text-align: left;
+    vertical-align: top;
+    padding: 10px 16px 10px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  th {
+    font-size: var(--fs-micro);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--brass);
+    white-space: nowrap;
+  }
+
+  td {
+    color: var(--muted);
+  }
+
+  td:first-child {
+    width: 46%;
+    color: var(--text);
+  }
+
+  .pager {
+    margin-top: var(--section-gap);
+    display: grid;
+    gap: 16px;
+  }
+
+  @media (min-width: 760px) {
+    .pager {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .pager__card {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    min-height: 168px;
+    padding: 24px;
+    border: 1px solid var(--rule);
+    text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease-std), background-color var(--dur-fast) var(--ease-std);
+  }
+
+  a.pager__card:hover {
+    border-color: var(--brass-dim);
+    background: var(--paper);
+  }
+
+  .pager__card.is-off {
+    border-style: dashed;
+    border-color: var(--rule-soft);
+  }
+
+  @media (max-width: 759px) {
+    .pager__card.is-off {
+      display: none;
+    }
+  }
+
+  .pager__card--next {
+    text-align: right;
+    justify-items: end;
+  }
+
+  .pager__dir {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+  }
+
+  .pager__title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    line-height: 1.22;
+    color: var(--text-strong);
+    text-wrap: balance;
+  }
+
+  .stamp {
+    margin-top: 32px;
+    color: var(--dim);
+  }
+</style>

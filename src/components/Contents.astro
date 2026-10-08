@@ -1,0 +1,123 @@
+---
+import { plural } from '../lib/dates.js';
+
+interface Props {
+  issue: any;
+}
+const { issue } = Astro.props;
+---
+<nav class="toc wrap" aria-labelledby="toc-title">
+  <div class="toc__head reveal">
+    <p class="kicker" id="toc-title">В этом выпуске</p>
+  </div>
+  <ol class="toc__grid reveal" role="list">
+    {
+      issue.sections.map((s: any, i: number) => (
+        <li>
+          <a class:list={['tile', { 'is-empty': !s.items.length }]} href={`#sec-${s.id}`}>
+            <span class="tile__n num">{String(i + 1).padStart(2, '0')}</span>
+            <span class="tile__t">{s.short}</span>
+            <span class="tile__c label num">
+              {s.items.length ? `${s.items.length} ${plural(s.items.length, 'материал', 'материала', 'материалов')}` : 'нет материалов'}
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .toc {
+    margin-top: var(--section-gap);
+  }
+
+  .toc__grid {
+    list-style: none;
+    margin: 18px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+  }
+
+  @media (min-width: 760px) {
+    .toc__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .tile {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    height: 100%;
+    min-height: 132px;
+    padding: 18px 18px 16px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    overflow: hidden;
+    transition: background-color var(--dur-fast) var(--ease-std);
+  }
+
+  .tile::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--carmine);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+
+  .tile:hover {
+    background: var(--paper);
+  }
+
+  .tile:hover::after {
+    transform: scaleX(1);
+  }
+
+  .tile__n {
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--brass);
+  }
+
+  .tile__t {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    color: var(--text-strong);
+    align-self: end;
+  }
+
+  .tile__c {
+    color: var(--muted);
+    font-size: var(--fs-micro);
+  }
+
+  .tile.is-empty .tile__t,
+  .tile.is-empty .tile__c {
+    color: var(--dim);
+  }
+
+  .tile.is-empty .tile__n {
+    -webkit-text-stroke-color: var(--rule);
+  }
+
+  @supports not (-webkit-text-stroke: 1px black) {
+    .tile__n {
+      color: var(--brass);
+    }
+  }
+</style>

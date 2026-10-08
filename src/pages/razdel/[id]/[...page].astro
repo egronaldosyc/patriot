@@ -1,0 +1,163 @@
+---
+import Base from '../../../layouts/Base.astro';
+import ItemCard from '../../../components/ItemCard.astro';
+import Icon from '../../../components/Icon.astro';
+import { SECTION_ORDER, SECTION_META } from '../../../lib/normalize.js';
+import { itemsBySection } from '../../../lib/issues.js';
+import { count, MONTHS_NOM, parts } from '../../../lib/dates.js';
+import { sectionHref } from '../../../lib/paths.js';
+
+export function getStaticPaths() {
+  const PER_PAGE = 24;
+  return SECTION_ORDER.flatMap((id) => {
+    const entries = itemsBySection(id);
+    const pages = Math.max(1, Math.ceil(entries.length / PER_PAGE));
+    return Array.from({ length: pages }, (_, i) => ({
+      params: { id, page: i === 0 ? undefined : String(i + 1) },
+      props: { id, page: i + 1, pages, entries: entries.slice(i * PER_PAGE, (i + 1) * PER_PAGE), total: entries.length },
+    }));
+  });
+}
+
+const { id, page, pages, entries, total } = Astro.props;
+const meta = SECTION_META[id as keyof typeof SECTION_META];
+const n = String(SECTION_ORDER.indexOf(id) + 1).padStart(2, '0');
+
+// Разбивка по месяцам выпусков для ритма длинной ленты.
+const groups: { label: string; rows: any[] }[] = [];
+for (const e of entries) {
+  const { y, m } = parts(e.issue.date);
+  const label = `${MONTHS_NOM[m - 1]} ${y}`;
+  if (groups.at(-1)?.label !== label) groups.push({ label, rows: [] });
+  groups.at(-1)!.rows.push(e);
+}
+const path = page > 1 ? `razdel/${id}/${page}/` : `razdel/${id}/`;
+---
+<Base
+  title={`${meta.title}${page > 1 ? ` — страница ${page}` : ''} — Патриот`}
+  description={meta.about}
+  path={path}
+>
+  <section class="wrap page-head intro">
+    <p class="kicker">Раздел {n}</p>
+    <h1>{meta.title}</h1>
+    <p>{meta.about}</p>
+    <p class="label muted num total">{count(total, 'материал', 'материала', 'материалов')} в архиве</p>
+  </section>
+
+  <nav class="wrap tabs" aria-label="Другие разделы">
+    {
+      SECTION_ORDER.map((sid) => (
+        <a class="chip" href={sectionHref(sid)} aria-current={sid === id ? 'page' : undefined}>
+          {SECTION_META[sid].short}
+        </a>
+      ))
+    }
+  </nav>
+
+  <div class="wrap feed">
+    {
+      groups.map((g) => (
+        <section class="group">
+          <h2 class="group__h label">{g.label}</h2>
+          <div class="group__rows">
+            {g.rows.map(({ issue, item }) => (
+              <ItemCard issue={issue} item={item} />
+            ))}
+          </div>
+        </section>
+      ))
+    }
+    {total === 0 && <p class="dim">В этом разделе пока нет материалов.</p>}
+  </div>
+
+  {
+    pages > 1 && (
+      <nav class="wrap pager" aria-label="Страницы раздела">
+        {page > 1 ? (
+          <a class="btn btn--quiet" href={sectionHref(id, page - 1)} rel="prev">
+            <Icon name="chevron-left" /> Новее
+          </a>
+        ) : (
+          <span />
+        )}
+        <span class="label muted num">
+          {page} / {pages}
+        </span>
+        {page < pages ? (
+          <a class="btn btn--quiet" href={sectionHref(id, page + 1)} rel="next">
+            Раньше <Icon name="chevron-right" />
+          </a>
+        ) : (
+          <span />
+        )}
+      </nav>
+    )
+  }
+</Base>
+
+<style>
+  .total {
+    margin-top: 20px !important;
+    font-size: var(--fs-label) !important;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 8px;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .feed {
+    margin-top: 32px;
+    display: grid;
+    gap: 48px;
+  }
+
+  .group {
+    display: grid;
+    gap: 0;
+  }
+
+  @media (min-width: 1000px) {
+    .group {
+      grid-template-columns: var(--rail) minmax(0, 1fr);
+      gap: 48px;
+    }
+    .group__h {
+      position: sticky;
+      top: calc(var(--nav-h) + 24px);
+      align-self: start;
+      padding-top: 28px;
+    }
+  }
+
+  .group__h {
+    color: var(--brass);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--carmine);
+  }
+
+  @media (min-width: 1000px) {
+    .group__h {
+      border-bottom: 0;
+    }
+  }
+
+  .group__rows {
+    max-width: 880px;
+  }
+
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 48px;
+  }
+</style>

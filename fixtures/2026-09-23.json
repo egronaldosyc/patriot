@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-23",
+  "generated_at": null,
+  "weekday": "среда",
+  "title": "Тестовый выпуск: пустые разделы и битые данные",
+  "lede": "Проверочный выпуск: пустые разделы, отсутствующий раздел, картинка без прямого адреса, битая картинка, опасные строки.",
+  "epigraph": null,
+  "hero_image": {"url": "https://waralbum.ru/wp-content/uploads/patriot-test-missing-hero.jpg", "page_url": "https://commons.wikimedia.org/wiki/Main_Page", "caption": "Заглавное фото, которое не загрузится", "author": "Тест", "license": "Public domain"},
+  "photo_note": null,
+  "sections": [
+    {"id": "word", "title": "Слово патриота", "subtitle": "Раздел не на своём месте — должен встать последним", "items": [
+      {"title": "Цитата", "date_label": null, "text": "«Строка приказа» — проверка кавычек.", "facts": [], "note": "Приписывается, документально не подтверждена.", "url": "javascript:alert(1)", "source_name": "Опасная ссылка", "image": null}
+    ], "empty_note": null},
+    {"id": "dates", "title": "Календарь памятных дат", "subtitle": null, "items": [], "empty_note": "За эту дату памятных дат не найдено."},
+    {"id": "vov", "title": "Великая Отечественная: этот день", "subtitle": "Разметка в тексте не должна исполняться", "items": [
+      {"title": "<script>alert('xss')</script> Заголовок с разметкой", "date_label": "23 сентября 1943 года", "text": "Текст с <b>тегами</b> и <img src=x onerror=alert(1)> — должен показаться как обычный текст.", "facts": ["<i>факт</i> с тегом", 42, null, ""], "note": null, "url": "https://warheroes.ru/", "source_name": "Герои страны", "image": {"url": "", "page_url": "https://waralbum.ru/", "caption": "Только подпись со ссылкой: прямого адреса изображения нет", "author": "Неизвестен", "license": "Public domain"}},
+      {"title": "Материал с битой картинкой", "date_label": "1944 год", "text": "Картинка ниже не загрузится — должна скрыться, подпись остаётся.", "facts": [], "note": null, "url": "https://pamyat-naroda.ru/", "source_name": null, "image": {"url": "https://waralbum.ru/wp-content/uploads/patriot-test-broken.jpg", "page_url": "https://pamyat-naroda.ru/", "caption": "Битая картинка", "author": null, "license": null}},
+      {"title": null, "date_label": null, "text": "Материал без заголовка.", "facts": [], "note": null, "url": null, "source_name": null, "image": null},
+      null,
+      "строка вместо объекта"
+    ], "empty_note": null},
+    {"id": "army", "items": null},
+    {"id": "security", "title": "Щит державы", "items": [], "empty_note": null},
+    {"id": "heroes", "title": "Герои", "items": [], "empty_note": "Имён за эту дату не найдено."},
+    {"id": "svo", "title": "Специальная военная операция: хроника даты", "items": [], "empty_note": "Хроники за эту дату нет."}
+  ],
+  "posts": [],
+  "image_credits": [
+    {"caption": "Битая картинка", "author": null, "license": null, "page_url": "https://pamyat-naroda.ru/", "url": "https://waralbum.ru/wp-content/uploads/patriot-test-broken.jpg"},
+    {"caption": "Дубликат", "author": null, "license": null, "page_url": "https://pamyat-naroda.ru/", "url": "https://waralbum.ru/wp-content/uploads/patriot-test-broken.jpg"}
+  ]
+}

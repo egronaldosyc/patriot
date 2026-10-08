@@ -1,0 +1,60 @@
+name: Сборка и публикация
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 00:05 по Москве (21:05 UTC): на главной сменяется «сегодняшний» выпуск.
+    - cron: '5 21 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Выпуск и правки кода могут прийти почти одновременно — публикации идут по очереди, не отменяя друг друга.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - id: pages
+        uses: actions/configure-pages@v6
+
+      - run: npm ci
+
+      - name: Проверка выпусков
+        run: npm run validate
+
+      - name: Сборка сайта и поискового индекса
+        run: npm run build
+        env:
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          ASTRO_TELEMETRY_DISABLED: 1
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

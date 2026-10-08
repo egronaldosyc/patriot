@@ -1,0 +1,143 @@
+---
+import Material from './Material.astro';
+import Icon from './Icon.astro';
+import { sectionHref } from '../lib/paths.js';
+import { SECTION_META } from '../lib/normalize.js';
+
+interface Props {
+  section: any;
+  index: number;
+  issueDate: string;
+}
+const { section, index, issueDate } = Astro.props;
+const n = String(index + 1).padStart(2, '0');
+const known = Boolean(SECTION_META[section.id as keyof typeof SECTION_META]);
+---
+<section class="sec" id={`sec-${section.id}`} aria-labelledby={`sec-${section.id}-t`}>
+  <div class="wrap">
+    <header class="sec__head reveal">
+      <span class="sec__n num" aria-hidden="true">{n}</span>
+      <div class="sec__titles">
+        <p class="kicker">Раздел {n}</p>
+        <h2 class="sec__title" id={`sec-${section.id}-t`}>{section.title}</h2>
+        {section.subtitle && <p class="sec__sub">{section.subtitle}</p>}
+      </div>
+      {
+        known && (
+          <a class="sec__all label no-print" href={sectionHref(section.id)}>
+            Весь раздел <Icon name="arrow-right" />
+          </a>
+        )
+      }
+    </header>
+    <hr class="sec__rule" />
+    <div class="sec__items">
+      {
+        section.items.length > 0 ? (
+          section.items.map((it: any) => <Material item={it} issueDate={issueDate} />)
+        ) : (
+          <p class="sec__empty">{section.emptyNote ?? 'За эту дату материалов по разделу не найдено.'}</p>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .sec {
+    margin-top: var(--section-gap);
+  }
+
+  .sec__head {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: end;
+    gap: 8px 24px;
+  }
+
+  .sec__n {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(4.5rem, 3rem + 7vw, 10rem);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--brass-dim);
+    letter-spacing: -0.02em;
+    user-select: none;
+  }
+
+  @supports not (-webkit-text-stroke: 1px black) {
+    .sec__n {
+      color: var(--brass-dim);
+    }
+  }
+
+  .sec__title {
+    margin-top: 10px;
+    font-size: var(--fs-h2);
+    font-weight: 500;
+    line-height: 1.08;
+  }
+
+  .sec__sub {
+    margin-top: 10px;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  .sec__all {
+    grid-column: 1 / -1;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    color: var(--brass);
+    text-decoration: none;
+  }
+
+  .sec__all:hover {
+    color: var(--text-strong);
+  }
+
+  @media (min-width: 760px) {
+    .sec__head {
+      grid-template-columns: auto 1fr auto;
+    }
+    .sec__all {
+      grid-column: 3;
+      justify-self: end;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .sec__head {
+      grid-template-columns: 1fr;
+    }
+    .sec__n {
+      font-size: 4.5rem;
+    }
+  }
+
+  .sec__rule {
+    margin: 22px 0 0;
+    height: 0;
+    border: 0;
+    border-top: 1px solid var(--carmine);
+  }
+
+  .sec__empty {
+    margin-top: 28px;
+    max-width: var(--measure);
+    font-style: italic;
+    color: var(--dim);
+  }
+
+  @media (min-width: 1100px) {
+    .sec__empty {
+      margin-left: calc(var(--rail) + 48px);
+    }
+  }
+</style>

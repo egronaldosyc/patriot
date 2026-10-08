@@ -1,0 +1,316 @@
+---
+import DateRibbon from './DateRibbon.astro';
+import Figure from './Figure.astro';
+import Icon from './Icon.astro';
+import { dayMonth, parts, count, plural } from '../lib/dates.js';
+import { relativeLabel } from '../lib/issues.js';
+import { issueHref } from '../lib/paths.js';
+
+interface Props {
+  issue: any;
+  upcoming?: any[];
+  shareUrl: string;
+}
+const { issue, upcoming = [], shareUrl } = Astro.props;
+const rel = relativeLabel(issue.date);
+const { y } = parts(issue.date);
+const liveSections = issue.sections.filter((s: any) => s.items.length).length;
+---
+<section class="hero" aria-labelledby="issue-title">
+  <div class="wrap">
+    <DateRibbon current={issue.date} />
+
+    <div class="hero__text intro">
+      <p class="hero__kicker">
+        <span class="kicker">Выпуск от {dayMonth(issue.date)}</span>
+        <span class="hero__meta label">{issue.weekday ?? ''}{issue.weekday ? ', ' : ''}{y}</span>
+        {rel && <span class="badge label">{rel}</span>}
+      </p>
+      <h1 id="issue-title" class="hero__title">{issue.title}</h1>
+      {issue.lede && <p class="hero__lede">{issue.lede}</p>}
+      <div class="hero__row">
+        <ul class="stats" aria-label="В выпуске">
+          <li><b class="num">{issue.stats.items}</b> {plural(issue.stats.items, 'материал', 'материала', 'материалов')}</li>
+          <li><b class="num">{liveSections}</b> {plural(liveSections, 'раздел', 'раздела', 'разделов')}</li>
+          <li><b class="num">{issue.stats.photos}</b> {plural(issue.stats.photos, 'фотография', 'фотографии', 'фотографий')}</li>
+        </ul>
+        <button
+          class="btn btn--quiet no-print"
+          type="button"
+          data-share
+          data-share-title={`${dayMonth(issue.date)}: ${issue.title} — Патриот`}
+          data-share-url={shareUrl}
+        >
+          <Icon name="share" /> Поделиться
+        </button>
+      </div>
+    </div>
+
+    {
+      upcoming.length > 0 && (
+        <div class="upcoming reveal">
+          {upcoming.slice(0, 1).map((u: any) => (
+            <a class="upcoming__card" href={issueHref(u.date)}>
+              <span class="kicker">{relativeLabel(u.date) ?? 'Скоро'} · {dayMonth(u.date)}</span>
+              <span class="upcoming__title">{u.title}</span>
+              <span class="upcoming__go label">
+                Читать заранее <Icon name="arrow-right" />
+              </span>
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </div>
+
+  {
+    issue.heroImage && (
+      <div class="hero__media wrap">
+        <Figure image={issue.heroImage} variant="hero" eager />
+      </div>
+    )
+  }
+
+  <div class="wrap">
+    <div class="hero__after">
+      {
+        issue.photoNote && (
+          <p class="photo-note reveal">
+            <Icon name="photo" />
+            <span>{issue.photoNote}</span>
+          </p>
+        )
+      }
+      {
+        issue.epigraph && (
+          <figure class="epigraph reveal">
+            <blockquote>
+              <p>«{issue.epigraph.text.replace(/^[«"„]+|[»"“]+$/g, '')}»</p>
+            </blockquote>
+            {(issue.epigraph.author || issue.epigraph.sourceUrl) && (
+              <figcaption>
+                {issue.epigraph.author}
+                {issue.epigraph.sourceUrl && (
+                  <>
+                    {issue.epigraph.author ? '. ' : ''}
+                    <a href={issue.epigraph.sourceUrl} target="_blank" rel="noopener noreferrer">
+                      Источник
+                    </a>
+                  </>
+                )}
+              </figcaption>
+            )}
+          </figure>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: 20px;
+  }
+
+  .hero__text {
+    padding-top: clamp(40px, 7vw, 104px);
+    max-width: 1080px;
+  }
+
+  .hero__kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+  }
+
+  .hero__meta {
+    color: var(--muted);
+  }
+
+  .badge {
+    padding: 3px 10px 2px;
+    border: 1px solid var(--brass-dim);
+    border-radius: var(--radius-pill);
+    color: var(--brass);
+    font-size: var(--fs-micro);
+  }
+
+  .hero__title {
+    margin-top: 22px;
+    font-size: var(--fs-hero);
+    font-weight: 600;
+    line-height: 0.98;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    view-transition-name: issue-title;
+    hyphens: manual;
+    overflow-wrap: break-word;
+  }
+
+  .hero__lede {
+    margin-top: 28px;
+    max-width: 62ch;
+    font-size: var(--fs-lede);
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  .hero__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px 32px;
+    margin-top: 36px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .stats {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 28px;
+    font-family: var(--font-ui);
+    font-size: var(--fs-ui);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .stats b {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.5rem;
+    letter-spacing: 0;
+    color: var(--text-strong);
+    margin-right: 4px;
+  }
+
+  .upcoming {
+    margin-top: 28px;
+  }
+
+  .upcoming__card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 6px 24px;
+    padding: 18px 20px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease-std), background-color var(--dur-fast) var(--ease-std);
+  }
+
+  .upcoming__card:hover {
+    border-color: var(--brass-dim);
+    background: var(--paper-2);
+  }
+
+  .upcoming__card .kicker {
+    grid-column: 1;
+  }
+
+  .upcoming__title {
+    grid-column: 1;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    line-height: 1.25;
+    color: var(--text-strong);
+  }
+
+  .upcoming__go {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--brass);
+  }
+
+  @media (max-width: 560px) {
+    .upcoming__card {
+      grid-template-columns: 1fr;
+    }
+    .upcoming__go {
+      grid-column: 1;
+      grid-row: auto;
+    }
+  }
+
+  .hero__media {
+    margin-top: clamp(40px, 6vw, 80px);
+  }
+
+  @media (max-width: 899px) {
+    .hero__media {
+      padding-inline: 0;
+    }
+    .hero__media :global(figcaption) {
+      padding-inline: var(--gutter);
+    }
+  }
+
+  .hero__after {
+    display: grid;
+    gap: 40px;
+    max-width: var(--measure);
+    margin-top: 40px;
+  }
+
+  /* На широком экране — по оси текстовой колонки материалов (после «рельса» с датами) */
+  @media (min-width: 1100px) {
+    .hero__after {
+      margin-left: calc(var(--rail) + 48px);
+    }
+  }
+
+  .photo-note {
+    display: flex;
+    gap: 12px;
+    padding: 14px 18px;
+    border: 1px dashed var(--rule);
+    font-family: var(--font-ui);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--dim);
+  }
+
+  .photo-note :global(.icon) {
+    margin-top: 2px;
+    color: var(--brass-dim);
+  }
+
+  .epigraph {
+    margin: 24px 0 0;
+    padding: 6px 0 6px clamp(20px, 3vw, 32px);
+    border-left: 2px solid var(--brass);
+  }
+
+  .epigraph blockquote {
+    margin: 0;
+  }
+
+  .epigraph p {
+    font-style: italic;
+    font-size: var(--fs-quote);
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .epigraph figcaption {
+    margin-top: 14px;
+    font-family: var(--font-ui);
+    font-size: 0.9375rem;
+    letter-spacing: 0.03em;
+    color: var(--dim);
+  }
+
+  .epigraph figcaption a {
+    color: var(--muted);
+  }
+</style>

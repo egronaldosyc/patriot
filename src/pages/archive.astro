@@ -1,0 +1,306 @@
+---
+import Base from '../layouts/Base.astro';
+import { allIssues, siteToday } from '../lib/issues.js';
+import { MONTHS_NOM, WEEKDAYS_SHORT, daysInMonth, weekdayIndexMon, parts, count, dayMonth } from '../lib/dates.js';
+import { issueHref } from '../lib/paths.js';
+
+const issues = allIssues();
+const today = siteToday();
+const byDate = new Map(issues.map((i) => [i.date, i]));
+
+// Месяцы, в которых есть выпуски, новые первыми.
+const monthKeys = [...new Set(issues.map((i) => i.date.slice(0, 7)))];
+const months = monthKeys.map((key) => {
+  const [y, m] = key.split('-').map(Number);
+  const total = daysInMonth(y, m);
+  const lead = weekdayIndexMon(`${key}-01`);
+  const cells = [
+    ...Array.from({ length: lead }, () => null),
+    ...Array.from({ length: total }, (_, i) => {
+      const date = `${key}-${String(i + 1).padStart(2, '0')}`;
+      return { day: i + 1, date, issue: byDate.get(date) ?? null };
+    }),
+  ];
+  const list = issues.filter((i) => i.date.startsWith(key));
+  return { key, y, m, cells, list };
+});
+const years = [...new Set(months.map((m) => m.y))];
+---
+<Base
+  title="Архив выпусков — Патриот"
+  description={`Все выпуски военно-исторической летописи «Патриот» по месяцам: ${count(issues.length, 'выпуск', 'выпуска', 'выпусков')}.`}
+  path="archive/"
+>
+  <section class="wrap page-head intro">
+    <p class="kicker">Летопись по дням</p>
+    <h1>Архив выпусков</h1>
+    <p>
+      {count(issues.length, 'выпуск', 'выпуска', 'выпусков')} с {issues.length ? dayMonth(issues[issues.length - 1].date) : '—'}
+      {issues.length && ` ${parts(issues[issues.length - 1].date).y} года`}. Каждый день — отдельная страница с постоянным адресом.
+    </p>
+    {
+      years.length > 1 && (
+        <nav class="years" aria-label="Годы">
+          {years.map((y) => (
+            <a class="chip" href={`#y${y}`}>
+              {y}
+            </a>
+          ))}
+        </nav>
+      )
+    }
+  </section>
+
+  <div class="wrap months">
+    {
+      months.map((mo, idx) => (
+        <section class="month reveal" id={idx === 0 || mo.m === 12 ? `y${mo.y}` : undefined} aria-labelledby={`m-${mo.key}`}>
+          <header class="month__head">
+            <h2 id={`m-${mo.key}`}>
+              {MONTHS_NOM[mo.m - 1]} <span class="num">{mo.y}</span>
+            </h2>
+            <p class="label muted num">{count(mo.list.length, 'выпуск', 'выпуска', 'выпусков')}</p>
+          </header>
+          <div class="month__body">
+            <div class="cal">
+              <div class="cal__row cal__wd" aria-hidden="true">
+                {WEEKDAYS_SHORT.map((w) => (
+                  <span class="label">{w}</span>
+                ))}
+              </div>
+              <div class="cal__grid">
+                {mo.cells.map((c) =>
+                  c === null ? (
+                    <span class="cell cell--pad" aria-hidden="true" />
+                  ) : c.issue ? (
+                    <a
+                      class:list={['cell', 'cell--on', { 'is-today': c.date === today, 'is-future': c.date > today }]}
+                      href={issueHref(c.date)}
+                      aria-label={`${dayMonth(c.date)}: ${c.issue.title}`}
+                      data-tip={c.issue.title}
+                    >
+                      <span class="num">{c.day}</span>
+                    </a>
+                  ) : (
+                    <span aria-hidden="true" class:list={['cell', { 'is-today': c.date === today }]}>
+                      <span class="num">{c.day}</span>
+                    </span>
+                  ),
+                )}
+              </div>
+            </div>
+            <ol class="list" role="list">
+              {mo.list.map((i) => (
+                <li>
+                  <a class="row" href={issueHref(i.date)}>
+                    <span class="row__d">
+                      <span class="row__n num">{parts(i.date).d}</span>
+                      <span class="label">{i.weekday ?? ''}</span>
+                    </span>
+                    <span class="row__t">
+                      <span class="row__title">{i.title}</span>
+                      <span class="row__meta label num">
+                        {count(i.stats.items, 'материал', 'материала', 'материалов')} · {count(i.stats.photos, 'фото', 'фото', 'фото')}
+                        {i.date > today && ' · подготовлен заранее'}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .years {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 28px;
+  }
+
+  .months {
+    display: grid;
+    gap: clamp(56px, 8vw, 96px);
+  }
+
+  .month__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--carmine);
+  }
+
+  .month__head h2 {
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .month__body {
+    display: grid;
+    gap: 32px;
+    margin-top: 28px;
+  }
+
+  @media (min-width: 960px) {
+    .month__body {
+      grid-template-columns: minmax(320px, 420px) 1fr;
+      gap: 56px;
+      align-items: start;
+    }
+    .cal {
+      position: sticky;
+      top: calc(var(--nav-h) + 24px);
+    }
+  }
+
+  .cal__row,
+  .cal__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .cal__wd span {
+    padding-bottom: 10px;
+    text-align: center;
+    color: var(--dim);
+    font-size: var(--fs-micro);
+  }
+
+  .cell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    min-height: 40px;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--dim);
+    border: 1px solid transparent;
+    text-decoration: none;
+  }
+
+  .cell--on {
+    color: var(--text-strong);
+    border-color: var(--rule);
+    background: var(--paper);
+    transition: background-color var(--dur-fast) var(--ease-std), color var(--dur-fast) var(--ease-std),
+      border-color var(--dur-fast) var(--ease-std);
+  }
+
+  .cell--on::after {
+    content: '';
+    position: absolute;
+    left: 30%;
+    right: 30%;
+    bottom: 6px;
+    height: 2px;
+    background: var(--brass);
+  }
+
+  .cell--on:hover {
+    background: var(--brass);
+    border-color: var(--brass);
+    color: var(--brass-ink);
+  }
+
+  .cell--on:hover::after {
+    background: var(--brass-ink);
+  }
+
+  .cell.is-future {
+    color: var(--muted);
+  }
+
+  .cell.is-today {
+    outline: 1px solid var(--carmine);
+    outline-offset: -1px;
+  }
+
+  /* Подсказка с заголовком выпуска */
+  @media (hover: hover) {
+    .cell--on[data-tip]:hover::before {
+      content: attr(data-tip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      z-index: 5;
+      width: max-content;
+      max-width: 240px;
+      padding: 8px 12px;
+      transform: translateX(-50%);
+      background: var(--paper-2);
+      border: 1px solid var(--rule);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 0.875rem;
+      line-height: 1.35;
+      text-align: left;
+      pointer-events: none;
+    }
+  }
+
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    text-decoration: none;
+    transition: background-color var(--dur-fast) var(--ease-std);
+  }
+
+  .row:hover .row__title {
+    color: var(--brass);
+  }
+
+  .row__d {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    color: var(--dim);
+  }
+
+  .row__n {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--text-strong);
+  }
+
+  .row__d .label {
+    font-size: 0.68rem;
+  }
+
+  .row__t {
+    display: grid;
+    gap: 6px;
+  }
+
+  .row__title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    line-height: 1.25;
+    color: var(--text-strong);
+    transition: color var(--dur-fast) var(--ease-std);
+  }
+
+  .row__meta {
+    color: var(--dim);
+  }
+</style>

@@ -1,0 +1,28 @@
+{
+  "name": "patriot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "«Патриот» — ежедневная военно-историческая летопись. Статический сайт на Astro, данные приходят от сборщика в data/.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "validate": "node scripts/validate.mjs",
+    "check": "node scripts/validate.mjs && astro build"
+  },
+  "dependencies": {
+    "@astrojs/rss": "4.0.19",
+    "@astrojs/sitemap": "3.7.4",
+    "@fontsource/oswald": "5.3.0",
+    "@fontsource/pt-sans-narrow": "5.3.0",
+    "@fontsource/pt-serif": "5.3.0",
+    "@resvg/resvg-js": "2.6.2",
+    "astro": "7.3.7",
+    "pagefind": "1.5.2",
+    "satori": "0.37.1"
+  }
+}

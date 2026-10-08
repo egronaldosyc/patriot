@@ -1,0 +1,204 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { allIssues } from '../lib/issues.js';
+import { plural } from '../lib/dates.js';
+import { href } from '../lib/paths.js';
+
+const issues = allIssues();
+const items = issues.reduce((n, i) => n + i.stats.items, 0);
+const photos = issues.reduce((n, i) => n + i.stats.photos, 0);
+
+const rules = [
+  ['Факт вместо эпитета', 'Номер части, фамилия командира, рубеж, дата приказа. Торжественность создаётся фактом, а не прилагательными.'],
+  ['Два источника', 'Значимые даты, цифры и номера частей сверяются минимум по двум независимым источникам. Не сошлось — материал не берётся или идёт с оговоркой.'],
+  ['Старый и новый стиль', 'Для событий до 1918 года указывается, по какому стилю дана дата, и проверяется пересчёт.'],
+  ['Цитаты с атрибуцией', 'Только подтверждённые слова. Широко известные, но документально не подтверждённые фразы помечаются как приписываемые.'],
+  ['Кто сообщает', 'Сведения о специальной военной операции приводятся со ссылкой на того, кто их сообщил, — заявления не подаются как установленный факт.'],
+  ['Фото с паспортом', 'У каждого снимка — подпись, автор, лицензия и ссылка на страницу файла. Снимок не выдаётся за кадр того события, которого на нём нет.'],
+];
+---
+<Base
+  title="О проекте — Патриот"
+  description="«Патриот» — ежедневная военно-историческая летопись. Как собираются выпуски и по каким правилам."
+  path="about/"
+>
+  <section class="wrap page-head intro">
+    <p class="kicker">О проекте</p>
+    <h1>Летопись, которая пишется каждый день</h1>
+    <p>
+      «Патриот» — ежедневный военно-исторический выпуск. Каждый день — памятные даты, события Великой Отечественной,
+      страницы истории армии и флота, органов безопасности, имена героев, образцы оружия и слова, сказанные в этот день.
+    </p>
+  </section>
+
+  <section class="wrap figures reveal" aria-label="Архив в цифрах">
+    <div><b class="num">{issues.length}</b><span class="label">{plural(issues.length, 'выпуск', 'выпуска', 'выпусков')}</span></div>
+    <div><b class="num">{items}</b><span class="label">{plural(items, 'материал', 'материала', 'материалов')}</span></div>
+    <div><b class="num">{photos}</b><span class="label">{plural(photos, 'фотография', 'фотографии', 'фотографий')}</span></div>
+    <div><b class="num">8</b><span class="label">разделов</span></div>
+  </section>
+
+  <section class="wrap block">
+    <div class="block__head reveal">
+      <p class="kicker">Как это устроено</p>
+      <h2>Выпуск готовится накануне</h2>
+    </div>
+    <div class="prose reveal">
+      <p>
+        Каждое утро выпуск на следующую дату собирается автоматически из открытых источников: энциклопедии Минобороны,
+        «Памяти народа», портала «Герои страны», Президентской библиотеки, военно-исторических архивов и ведущих
+        информационных агентств. Затем он появляется здесь, с постоянным адресом, и попадает в архив.
+      </p>
+      <p>
+        У каждого материала — ссылка на первоисточник. Если по разделу за дату ничего достойного не нашлось, раздел
+        остаётся пустым: общих слов вместо фактов здесь не будет.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap block">
+    <div class="block__head reveal">
+      <p class="kicker">Правила</p>
+      <h2>Точность важнее стиля</h2>
+    </div>
+    <ol class="rules" role="list">
+      {
+        rules.map(([t, d], i) => (
+          <li class="rule-card reveal">
+            <span class="rule-card__n num">{String(i + 1).padStart(2, '0')}</span>
+            <h3>{t}</h3>
+            <p>{d}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="wrap block cta reveal">
+    <h2>Читайте каждый день</h2>
+    <div class="cta__row">
+      <a class="btn" href="https://t.me/patriotZ2021" target="_blank" rel="noopener noreferrer"><Icon name="telegram" /> Канал в Telegram</a>
+      <a class="btn btn--quiet" href={href('feed.xml')}><Icon name="rss" /> RSS</a>
+      <a class="btn btn--quiet" href={href('archive/')}><Icon name="calendar" /> Архив</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-head h1 {
+    max-width: 18ch;
+  }
+
+  .figures {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border-top: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+  }
+
+  @media (min-width: 760px) {
+    .figures {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .figures div {
+    display: grid;
+    gap: 6px;
+    padding: 24px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .figures b {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(2.5rem, 2rem + 2.5vw, 4rem);
+    line-height: 1;
+    color: var(--text-strong);
+  }
+
+  .figures .label {
+    color: var(--muted);
+  }
+
+  .block {
+    margin-top: var(--section-gap);
+  }
+
+  .block__head h2,
+  .cta h2 {
+    margin-top: 10px;
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .prose {
+    max-width: var(--measure);
+    display: grid;
+    gap: 18px;
+    margin-top: 28px;
+    font-size: 1.1rem;
+  }
+
+  .rules {
+    list-style: none;
+    margin: 32px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 16px;
+  }
+
+  @media (min-width: 760px) {
+    .rules {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .rules {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .rule-card {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    padding: 24px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+  }
+
+  .rule-card__n {
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--brass);
+  }
+
+  .rule-card h3 {
+    font-size: 1.3rem;
+  }
+
+  .rule-card p {
+    color: var(--muted);
+    font-size: 0.975rem;
+  }
+
+  .cta {
+    padding-top: 48px;
+    border-top: 3px solid var(--carmine);
+  }
+
+  .cta__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }
+</style>

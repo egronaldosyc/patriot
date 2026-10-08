@@ -1,0 +1,163 @@
+---
+import Icon from './Icon.astro';
+import { allIssues, siteToday } from '../lib/issues.js';
+import { parts, MONTHS_SHORT, WEEKDAYS_SHORT, weekdayIndexMon, longDate } from '../lib/dates.js';
+import { issueHref, href } from '../lib/paths.js';
+
+interface Props {
+  current: string;
+  limit?: number;
+}
+const { current, limit = 60 } = Astro.props;
+const today = siteToday();
+
+// Окно вокруг текущего выпуска, слева направо — от старых к новым.
+const chrono = [...allIssues()].reverse();
+const at = Math.max(0, chrono.findIndex((i) => i.date === current));
+const start = Math.max(0, Math.min(at - Math.floor(limit / 2), chrono.length - limit));
+const days = chrono.slice(start, start + limit);
+---
+<nav class="ribbon no-print" aria-label="Выпуски по дням">
+  <ol class="ribbon__list" data-ribbon>
+    {
+      days.map((d) => {
+        const { d: day, m } = parts(d.date);
+        const isCurrent = d.date === current;
+        return (
+          <li>
+            <a
+              class:list={['day', { 'is-today': d.date === today, 'is-future': d.date > today }]}
+              href={issueHref(d.date)}
+              aria-current={isCurrent ? 'page' : undefined}
+              title={d.title}
+              aria-label={`${longDate(d.date)}: ${d.title}`}
+            >
+              <span class="day__wd">{WEEKDAYS_SHORT[weekdayIndexMon(d.date)]}</span>
+              <span class="day__n num">{day}</span>
+              <span class="day__m">{MONTHS_SHORT[m - 1]}</span>
+            </a>
+          </li>
+        );
+      })
+    }
+    <li class="ribbon__all">
+      <a class="day day--all" href={href('archive/')}>
+        <Icon name="calendar" />
+        <span class="day__m">Архив</span>
+      </a>
+    </li>
+  </ol>
+</nav>
+
+<style>
+  .ribbon {
+    position: relative;
+    margin-inline: calc(var(--gutter) * -1);
+  }
+
+  .ribbon::before,
+  .ribbon::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 28px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .ribbon::before {
+    left: 0;
+    background: linear-gradient(to right, var(--ink), transparent);
+  }
+
+  .ribbon::after {
+    right: 0;
+    background: linear-gradient(to left, var(--ink), transparent);
+  }
+
+  .ribbon__list {
+    list-style: none;
+    margin: 0;
+    padding: 4px var(--gutter);
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .ribbon__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ribbon__list li {
+    scroll-snap-align: center;
+    flex: none;
+  }
+
+  .day {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    width: 58px;
+    padding: 10px 0 9px;
+    border: 1px solid transparent;
+    font-family: var(--font-ui);
+    text-decoration: none;
+    color: var(--muted);
+    transition: color var(--dur-fast) var(--ease-std), border-color var(--dur-fast) var(--ease-std),
+      background-color var(--dur-fast) var(--ease-std);
+  }
+
+  .day:hover {
+    color: var(--text-strong);
+    border-color: var(--rule);
+  }
+
+  .day__wd,
+  .day__m {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .day__n {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    line-height: 1.05;
+    font-weight: 500;
+  }
+
+  .day[aria-current='page'] {
+    color: var(--brass-ink);
+    background: var(--brass);
+    border-color: var(--brass);
+  }
+
+  .day.is-today:not([aria-current='page'])::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--carmine);
+  }
+
+  .day.is-future:not([aria-current='page']) {
+    color: var(--dim);
+  }
+
+  .day--all {
+    height: 100%;
+    align-content: center;
+    gap: 6px;
+    color: var(--brass);
+    border-color: var(--rule-soft);
+  }
+</style>

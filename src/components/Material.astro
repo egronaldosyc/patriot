@@ -1,0 +1,208 @@
+---
+import Figure from './Figure.astro';
+import Icon from './Icon.astro';
+import { yearsAgo } from '../lib/dates.js';
+
+interface Props {
+  item: any;
+  issueDate: string;
+}
+const { item, issueDate } = Astro.props;
+const ago = yearsAgo(item.year, issueDate);
+---
+<article class="mat reveal" id={item.anchor} aria-labelledby={`${item.anchor}-t`}>
+  <div class="mat__rail">
+    {item.dateLabel && <p class="mat__date label">{item.dateLabel}</p>}
+    {ago && <p class="mat__ago label num">{ago}</p>}
+  </div>
+  <div class="mat__body">
+    <h3 class="mat__title" id={`${item.anchor}-t`}>
+      {item.title}
+      <button class="mat__link no-print" type="button" data-copy-link={`#${item.anchor}`} aria-label="Скопировать ссылку на материал" title="Скопировать ссылку">
+        <Icon name="link" />
+      </button>
+    </h3>
+    {item.text && <p class="mat__text">{item.text}</p>}
+    {
+      item.facts.length > 0 && (
+        <ul class="facts num">
+          {item.facts.map((f: string) => <li>{f}</li>)}
+        </ul>
+      )
+    }
+    {item.image && <Figure image={item.image} class="mat__fig" />}
+    {item.note && <p class="mat__note">{item.note}</p>}
+    {
+      item.url && (
+        <p class="mat__src label">
+          Источник:{' '}
+          <a href={item.url} target="_blank" rel="noopener noreferrer">
+            {item.sourceName ?? 'ссылка'}
+            <Icon name="arrow-up-right" />
+          </a>
+        </p>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .mat {
+    display: grid;
+    gap: 10px;
+    padding-block: 40px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .mat:last-child {
+    border-bottom: 0;
+  }
+
+  @media (min-width: 1100px) {
+    .mat {
+      grid-template-columns: var(--rail) minmax(0, var(--measure));
+      column-gap: 48px;
+    }
+  }
+
+  .mat__rail {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+  }
+
+  @media (min-width: 1100px) {
+    .mat__rail {
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 6px;
+      position: sticky;
+      top: calc(var(--nav-h) + 24px);
+      align-self: start;
+    }
+  }
+
+  .mat__date {
+    color: var(--brass);
+  }
+
+  .mat__ago {
+    color: var(--dim);
+  }
+
+  .mat__title {
+    position: relative;
+    font-size: var(--fs-h3);
+    font-weight: 500;
+    line-height: 1.22;
+  }
+
+  .mat__link {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin: -6px 0 -6px 4px;
+    vertical-align: middle;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--dim);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-std), color var(--dur-fast) var(--ease-std);
+  }
+
+  .mat:hover .mat__link,
+  .mat__link:focus-visible,
+  .mat__link[data-state='done'] {
+    opacity: 1;
+  }
+
+  .mat__link:hover {
+    color: var(--brass);
+  }
+
+  @media (hover: none) {
+    .mat__link {
+      opacity: 0.6;
+    }
+  }
+
+  .mat__text {
+    margin-top: 14px;
+  }
+
+  .facts {
+    list-style: none;
+    margin: 18px 0 0;
+    padding: 0 0 0 16px;
+    border-left: 1px solid var(--brass-dim);
+    display: grid;
+    gap: 6px;
+  }
+
+  .facts li {
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+
+  .mat__body > :global(.mat__fig) {
+    margin-top: 24px;
+  }
+
+  .mat__note {
+    margin-top: 16px;
+    font-size: 0.9rem;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--dim);
+  }
+
+  .mat__src {
+    margin-top: 18px;
+    color: var(--dim);
+  }
+
+  .mat__src a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule);
+    min-height: 32px;
+  }
+
+  .mat__src a:hover {
+    color: var(--brass);
+    border-bottom-color: var(--brass);
+  }
+
+  .mat__src :global(.icon) {
+    width: 14px;
+    height: 14px;
+  }
+
+  .mat:target .mat__title {
+    color: var(--brass);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .mat:target {
+      animation: target-flash 1.6s var(--ease-out);
+    }
+  }
+
+  @keyframes target-flash {
+    from {
+      background: color-mix(in srgb, var(--brass) 10%, transparent);
+    }
+    to {
+      background: transparent;
+    }
+  }
+</style>

@@ -1,0 +1,128 @@
+/* Дизайн-токены «Патриота». Тёмная тема основная, светлая — по системе или переключателю.
+   Латунь и кармин — акценты, не заливки. Контраст текста ≥ 4.5:1 в обеих темах. */
+
+:root {
+  color-scheme: dark;
+
+  /* Цвет — тёмная тема */
+  --ink: #0d0f12;          /* фон */
+  --ink-raised: #111418;   /* фон выделенных полос */
+  --paper: #14171c;        /* карточки */
+  --paper-2: #191d23;      /* карточки при наведении */
+  --rule: #272d36;         /* линейки */
+  --rule-soft: #1e232a;
+  --text: #e7e3da;         /* тёплый белый */
+  --text-strong: #f3efe6;
+  --muted: #99a1ac;
+  --dim: #7c8590;          /* было #6f7883 — поднято до 4.9:1 на --ink */
+  --brass: #bd9a52;        /* рубрики, активные элементы, кнопки */
+  --brass-dim: #8a7038;    /* только линейки и крупные цифры */
+  --brass-ink: #14100a;    /* текст на латунной заливке */
+  --carmine: #9a2f28;      /* только линейки-акценты */
+  --scrim: rgb(13 15 18 / 0.72);
+  --img-filter: none;
+
+  /* Гарнитуры (все с кириллицей) */
+  --font-display: 'Oswald', 'PT Sans Narrow', 'Arial Narrow', Impact, sans-serif;
+  --font-ui: 'PT Sans Narrow', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --font-text: 'PT Serif', Georgia, 'Times New Roman', serif;
+
+  /* Шкала */
+  --fs-hero: clamp(2.6rem, 1.1rem + 6.6vw, 7rem);
+  --fs-h1: clamp(2.1rem, 1.3rem + 3.6vw, 4.25rem);
+  --fs-h2: clamp(1.75rem, 1.25rem + 2.2vw, 3rem);
+  --fs-h3: clamp(1.3rem, 1.15rem + 0.6vw, 1.6rem);
+  --fs-lede: clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem);
+  --fs-quote: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem);
+  --fs-body: 1.0625rem;
+  --fs-ui: 0.9375rem;
+  --fs-label: 0.8125rem;
+  --fs-micro: 0.75rem;
+  --lh-body: 1.6;
+
+  --track-display: 0.02em;
+  --track-mast: 0.14em;
+  --track-label: 0.16em;
+  --track-kicker: 0.24em;
+
+  /* Ритм */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+  --section-gap: clamp(72px, 9vw, 140px);
+
+  /* Сетка */
+  --gutter: 20px;
+  --measure: 70ch;
+  --wide: 1200px;
+  --rail: 220px;
+  --nav-h: 56px;
+
+  /* Формы: медиа и карточки с прямыми углами, «таблетки» — только у чипов и кнопок */
+  --radius-0: 0;
+  --radius-pill: 999px;
+
+  /* Движение */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-std: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 140ms;
+  --dur-med: 320ms;
+  --dur-slow: 820ms;
+
+  --focus: 2px solid var(--brass);
+}
+
+@media (max-width: 480px) {
+  :root {
+    --gutter: 16px;
+    --fs-body: 1.03rem;
+  }
+}
+
+/* Светлая тема: бумага и тёмная латунь */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    color-scheme: light;
+    --ink: #f4f1ea;
+    --ink-raised: #ece8de;
+    --paper: #fbf9f4;
+    --paper-2: #ffffff;
+    --rule: #d6cfc1;
+    --rule-soft: #e4dfd4;
+    --text: #1b1d21;
+    --text-strong: #0e1013;
+    --muted: #4e555e;
+    --dim: #5f6670;
+    --brass: #7d5f22;
+    --brass-dim: #a88a4e;
+    --brass-ink: #fbf9f4;
+    --carmine: #8f2a23;
+    --scrim: rgb(244 241 234 / 0.76);
+  }
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --ink: #f4f1ea;
+  --ink-raised: #ece8de;
+  --paper: #fbf9f4;
+  --paper-2: #ffffff;
+  --rule: #d6cfc1;
+  --rule-soft: #e4dfd4;
+  --text: #1b1d21;
+  --text-strong: #0e1013;
+  --muted: #4e555e;
+  --dim: #5f6670;
+  --brass: #7d5f22;
+  --brass-dim: #a88a4e;
+  --brass-ink: #fbf9f4;
+  --carmine: #8f2a23;
+  --scrim: rgb(244 241 234 / 0.76);
+}

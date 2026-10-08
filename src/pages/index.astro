@@ -1,0 +1,20 @@
+---
+import IssueView from '../components/IssueView.astro';
+import Base from '../layouts/Base.astro';
+import { currentIssue } from '../lib/issues.js';
+
+const issue = currentIssue();
+---
+{
+  issue ? (
+    <IssueView issue={issue} home />
+  ) : (
+    <Base title="Патриот" path="">
+      <section class="wrap page-head">
+        <p class="kicker">Военно-историческая летопись</p>
+        <h1>Выпусков пока нет</h1>
+        <p>Первый выпуск появится после ближайшего запуска сборщика.</p>
+      </section>
+    </Base>
+  )
+}

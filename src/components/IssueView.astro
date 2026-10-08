@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+import IssueHero from './IssueHero.astro';
+import Highlights from './Highlights.astro';
+import Chronology from './Chronology.astro';
+import Contents from './Contents.astro';
+import SectionBlock from './SectionBlock.astro';
+import IssueFooter from './IssueFooter.astro';
+import { dayMonth, issueInstant } from '../lib/dates.js';
+import { neighbours, upcomingIssues } from '../lib/issues.js';
+import { issueHref, absolute } from '../lib/paths.js';
+
+interface Props {
+  issue: any;
+  home?: boolean;
+}
+const { issue, home = false } = Astro.props;
+const site = Astro.site ?? new URL('http://localhost:4321');
+const path = `${issue.date}/`;
+const shareUrl = absolute(path, site);
+const { newer, older } = neighbours(issue.date);
+const upcoming = home ? upcomingIssues() : [];
+
+const title = `${dayMonth(issue.date)}: ${issue.title} — Патриот`;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: issue.title,
+  description: issue.lede ?? undefined,
+  inLanguage: 'ru',
+  datePublished: issueInstant(issue.date).toISOString(),
+  ...(issue.generatedAt ? { dateModified: new Date(issue.generatedAt).toISOString() } : {}),
+  image: [absolute(`og/${issue.date}.png`, site)],
+  mainEntityOfPage: shareUrl,
+  publisher: { '@type': 'Organization', name: 'Патриот', logo: { '@type': 'ImageObject', url: absolute('icons/512.png', site) } },
+  articleSection: issue.sections.filter((s: any) => s.items.length).map((s: any) => s.title),
+};
+---
+<Base
+  title={home ? `Патриот — ${dayMonth(issue.date)}: ${issue.title}` : title}
+  description={issue.lede}
+  path={home ? '' : path}
+  canonicalPath={path}
+  ogImage={`og/${issue.date}.png`}
+  type="article"
+  published={issueInstant(issue.date).toISOString()}
+  jsonLd={jsonLd}
+  switcher={{
+    label: dayMonth(issue.date),
+    newer: newer ? { href: issueHref(newer.date), label: dayMonth(newer.date) } : null,
+    older: older ? { href: issueHref(older.date), label: dayMonth(older.date) } : null,
+  }}
+>
+  <IssueHero issue={issue} upcoming={upcoming} shareUrl={shareUrl} />
+  <Highlights issue={issue} shareUrl={shareUrl} />
+  <Chronology issue={issue} />
+  <Contents issue={issue} />
+  {issue.sections.map((s: any, i: number) => <SectionBlock section={s} index={i} issueDate={issue.date} />)}
+  <IssueFooter issue={issue} />
+  {
+    home && (
+      <script is:inline>
+        // Старые ссылки вида #2026-10-09 из прежнего архива ведут на постоянный адрес выпуска.
+        (function () {
+          var m = /^#(\d{4}-\d{2}-\d{2})$/.exec(location.hash);
+          if (m) location.replace(location.pathname.replace(/\/?$/, '/') + m[1] + '/');
+        })();
+      </script>
+    )
+  }
+</Base>

@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import { href } from '../lib/paths.js';
+---
+<Base title="Страница не найдена — Патриот" path="404/" noindex>
+  <section class="wrap page-head intro nf">
+    <p class="kicker">Ошибка 404</p>
+    <h1>Такой страницы нет</h1>
+    <p>Возможно, выпуск за эту дату ещё не вышел или адрес набран с ошибкой.</p>
+    <div class="row">
+      <a class="btn" href={href('')}>Выпуск дня</a>
+      <a class="btn btn--quiet" href={href('archive/')}>Архив</a>
+      <a class="btn btn--quiet" href={href('search/')}>Поиск</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    min-height: 50vh;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+</style>

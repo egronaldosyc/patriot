@@ -1,0 +1,236 @@
+---
+// «Этот день сквозь века»: материалы выпуска, разложенные по эпохам по году события.
+import { ERAS } from '../lib/normalize.js';
+import { count } from '../lib/dates.js';
+
+interface Props {
+  issue: any;
+}
+const { issue } = Astro.props;
+const events = issue.sections
+  .flatMap((s: any) => s.items.map((it: any) => ({ ...it, section: s.short })))
+  .filter((it: any) => it.year != null)
+  .sort((a: any, b: any) => a.year - b.year);
+
+const eras = ERAS.map((e) => ({ ...e, events: events.filter((ev: any) => ev.era === e.id) }));
+const first = events[0]?.year;
+const last = events[events.length - 1]?.year;
+const VISIBLE = 6;
+---
+{
+  events.length >= 3 && (
+    <section class="chrono" aria-labelledby="chrono-title">
+      <div class="wrap">
+        <div class="chrono__head reveal">
+          <p class="kicker">Хронология</p>
+          <h2 id="chrono-title" class="chrono__title">Этот день сквозь века</h2>
+          <p class="chrono__sub">
+            {count(events.length, 'событие', 'события', 'событий')} — от <span class="num">{first}</span> до <span class="num">{last}</span> года
+          </p>
+        </div>
+      </div>
+      <ol class="eras reveal" role="list">
+        {eras.map((era) => (
+          <li class:list={['era', { 'is-empty': era.events.length === 0, 'is-ww2': era.id === 'ww2' }]}>
+            <div class="era__axis">
+              <span class="era__label label">{era.label}</span>
+              <span class="era__count num">{era.events.length || '—'}</span>
+            </div>
+            {era.events.length > 0 && (
+              <ul class="era__events" role="list">
+                {era.events.slice(0, VISIBLE).map((ev: any) => (
+                  <li>
+                    <a class="ev" href={`#${ev.anchor}`}>
+                      <span class="ev__y num">{ev.year}</span>
+                      <span class="ev__t">{ev.title}</span>
+                    </a>
+                  </li>
+                ))}
+                {era.events.length > VISIBLE && (
+                  <li>
+                    <details class="more">
+                      <summary class="label">Ещё {era.events.length - VISIBLE}</summary>
+                      <ul role="list">
+                        {era.events.slice(VISIBLE).map((ev: any) => (
+                          <li>
+                            <a class="ev" href={`#${ev.anchor}`}>
+                              <span class="ev__y num">{ev.year}</span>
+                              <span class="ev__t">{ev.title}</span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </li>
+                )}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+<style>
+  .chrono {
+    margin-top: var(--section-gap);
+  }
+
+  .chrono__title {
+    margin-top: 10px;
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .chrono__sub {
+    margin-top: 12px;
+    font-family: var(--font-ui);
+    font-size: var(--fs-ui);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .eras {
+    list-style: none;
+    margin: 32px auto 0;
+    padding: 0 var(--gutter) 8px;
+    max-width: calc(var(--wide) + var(--gutter) * 2);
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(172px, 1fr);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule) transparent;
+  }
+
+  .era {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    padding-right: 16px;
+    min-width: 0;
+  }
+
+  .era__axis {
+    order: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    position: relative;
+  }
+
+  .era__axis::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 0;
+    width: 7px;
+    height: 7px;
+    background: var(--brass);
+  }
+
+  .era.is-empty .era__axis::before {
+    background: var(--rule);
+  }
+
+  .era.is-ww2 .era__axis {
+    border-top: 3px solid var(--carmine);
+    padding-top: 10px;
+  }
+
+  .era.is-ww2 .era__axis::before {
+    top: -5px;
+  }
+
+  .era__label {
+    color: var(--muted);
+  }
+
+  .era__count {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--text-strong);
+  }
+
+  .era.is-empty .era__label,
+  .era.is-empty .era__count {
+    color: var(--dim);
+  }
+
+  .era__events,
+  .more ul {
+    order: 1;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+    align-content: end;
+    flex: 1;
+  }
+
+  .ev {
+    display: grid;
+    grid-template-columns: 3.2em 1fr;
+    gap: 8px;
+    align-items: baseline;
+    padding: 6px 8px 6px 0;
+    min-height: 40px;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color var(--dur-fast) var(--ease-std), border-color var(--dur-fast) var(--ease-std);
+  }
+
+  .ev:hover {
+    border-bottom-color: var(--brass-dim);
+  }
+
+  .ev__y {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--brass);
+  }
+
+  .ev__t {
+    font-family: var(--font-ui);
+    font-size: 0.9375rem;
+    line-height: 1.3;
+    color: var(--text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .ev:hover .ev__t {
+    color: var(--text-strong);
+  }
+
+  .more summary {
+    cursor: pointer;
+    padding: 10px 0;
+    color: var(--brass);
+    list-style: none;
+  }
+
+  .more summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .more summary::after {
+    content: ' +';
+  }
+
+  .more[open] summary::after {
+    content: ' −';
+  }
+</style>

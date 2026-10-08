@@ -1,0 +1,449 @@
+---
+import Icon from './Icon.astro';
+import { href } from '../lib/paths.js';
+
+interface Props {
+  path: string;
+  switcher?: {
+    label: string;
+    newer?: { href: string; label: string } | null;
+    older?: { href: string; label: string } | null;
+  };
+}
+
+const { path, switcher } = Astro.props;
+const links = [
+  { to: '', label: 'Выпуск', match: (p: string) => p === '' || /^\d{4}-\d{2}-\d{2}/.test(p) },
+  { to: 'archive/', label: 'Архив', match: (p: string) => p.startsWith('archive') },
+  { to: 'razdel/', label: 'Разделы', match: (p: string) => p.startsWith('razdel') },
+  { to: 'search/', label: 'Поиск', match: (p: string) => p.startsWith('search') },
+  { to: 'about/', label: 'О проекте', match: (p: string) => p.startsWith('about') },
+];
+const p = path.replace(/^\/+/, '');
+---
+<header class="site-header no-print">
+  <div class="bar wrap">
+    <a class="wordmark" href={href('')} aria-label="Патриот — на главную">
+      <span class="wordmark__mark" aria-hidden="true"></span>
+      <span class="wordmark__text">Патриот</span>
+    </a>
+
+    {
+      switcher && (
+        <nav class="switcher" aria-label="Соседние выпуски">
+          {switcher.older ? (
+            <a class="switcher__step" href={switcher.older.href} rel="prev" data-nav="older" aria-label={`Предыдущий выпуск: ${switcher.older.label}`}>
+              <Icon name="chevron-left" />
+            </a>
+          ) : (
+            <span class="switcher__step is-off" aria-hidden="true"><Icon name="chevron-left" /></span>
+          )}
+          <a class="switcher__label num" href={href('archive/')} title="Все выпуски по месяцам">
+            {switcher.label}
+          </a>
+          {switcher.newer ? (
+            <a class="switcher__step" href={switcher.newer.href} rel="next" data-nav="newer" aria-label={`Следующий выпуск: ${switcher.newer.label}`}>
+              <Icon name="chevron-right" />
+            </a>
+          ) : (
+            <span class="switcher__step is-off" aria-hidden="true"><Icon name="chevron-right" /></span>
+          )}
+        </nav>
+      )
+    }
+
+    <nav class="nav" aria-label="Разделы сайта">
+      <ul>
+        {
+          links.map((l) => (
+            <li>
+              <a href={href(l.to)} aria-current={l.match(p) ? 'page' : undefined}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="tools">
+      <a class="tool" href={href('search/')} aria-label="Поиск по архиву" data-search-link>
+        <Icon name="search" />
+      </a>
+      <button class="tool" type="button" data-theme-toggle aria-label="Сменить тему">
+        <Icon name="moon" class="i-moon" />
+        <Icon name="sun" class="i-sun" />
+      </button>
+      <a class="tool tool--wide" href="https://t.me/patriotZ2021" target="_blank" rel="noopener noreferrer" aria-label="Канал в Telegram">
+        <Icon name="telegram" />
+      </a>
+      <button class="tool tool--menu" type="button" popovertarget="site-menu" aria-label="Меню" aria-controls="site-menu">
+        <Icon name="menu" />
+      </button>
+    </div>
+  </div>
+  <div class="progress" aria-hidden="true"></div>
+</header>
+
+<div id="site-menu" class="menu no-print" popover>
+  <div class="menu__inner wrap">
+    <div class="menu__top">
+      <span class="kicker">Военно-историческая летопись</span>
+      <button class="tool" type="button" popovertarget="site-menu" popovertargetaction="hide" aria-label="Закрыть меню">
+        <Icon name="close" />
+      </button>
+    </div>
+    <nav aria-label="Меню">
+      <ul>
+        {
+          links.map((l) => (
+            <li>
+              <a href={href(l.to)} aria-current={l.match(p) ? 'page' : undefined}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="menu__foot">
+      <a class="btn btn--quiet" href="https://t.me/patriotZ2021" target="_blank" rel="noopener noreferrer">
+        <Icon name="telegram" /> Канал в Telegram
+      </a>
+      <button class="btn btn--quiet" type="button" data-theme-toggle>
+        <Icon name="moon" class="i-moon" />
+        <Icon name="sun" class="i-sun" />
+        <span data-theme-label>Тема</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    view-transition-name: site-header;
+    background: color-mix(in srgb, var(--ink) 80%, transparent);
+    -webkit-backdrop-filter: saturate(160%) blur(18px);
+    backdrop-filter: saturate(160%) blur(18px);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .site-header {
+      background: var(--ink);
+    }
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: var(--nav-h);
+  }
+
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    text-decoration: none;
+    flex: none;
+  }
+
+  .wordmark__mark {
+    width: 10px;
+    height: 18px;
+    border-left: 3px solid var(--carmine);
+    border-right: 3px solid var(--brass);
+  }
+
+  .wordmark__text {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .switcher {
+    display: flex;
+    align-items: center;
+    margin-inline: auto;
+  }
+
+  .switcher__step {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--muted);
+    border-radius: var(--radius-pill);
+    transition: color var(--dur-fast) var(--ease-std), background-color var(--dur-fast) var(--ease-std);
+  }
+
+  .switcher__step:hover {
+    color: var(--brass);
+    background: var(--paper);
+  }
+
+  .switcher__step.is-off {
+    opacity: 0.3;
+  }
+
+  .switcher__label {
+    font-family: var(--font-ui);
+    font-size: var(--fs-ui);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-decoration: none;
+    padding: 10px 6px;
+    white-space: nowrap;
+  }
+
+  .switcher__label:hover {
+    color: var(--brass);
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .nav ul,
+  .menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav ul {
+    display: flex;
+    gap: 4px;
+  }
+
+  .nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    font-family: var(--font-ui);
+    font-size: var(--fs-ui);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    position: relative;
+  }
+
+  .nav a::after {
+    content: '';
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 8px;
+    height: 1px;
+    background: var(--brass);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+
+  .nav a:hover {
+    color: var(--text-strong);
+  }
+
+  .nav a:hover::after,
+  .nav a[aria-current='page']::after {
+    transform: scaleX(1);
+  }
+
+  .nav a[aria-current='page'] {
+    color: var(--brass);
+  }
+
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    flex: none;
+  }
+
+  .switcher + .nav + .tools,
+  .switcher ~ .tools {
+    margin-left: 0;
+  }
+
+  .tool {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: var(--radius-pill);
+    transition: color var(--dur-fast) var(--ease-std), background-color var(--dur-fast) var(--ease-std);
+  }
+
+  .tool:hover {
+    color: var(--brass);
+    background: var(--paper);
+  }
+
+  .tool--wide,
+  .tools > [data-theme-toggle],
+  .tools > [data-search-link] {
+    display: none;
+  }
+
+  :global(.i-sun) {
+    display: none;
+  }
+
+  :global(:root[data-theme-resolved='light'] .i-sun) {
+    display: block;
+  }
+
+  :global(:root[data-theme-resolved='light'] .i-moon) {
+    display: none;
+  }
+
+  .progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--brass);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .progress {
+      animation: progress linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+
+  @media (min-width: 560px) {
+    .tools > [data-theme-toggle],
+    .tools > [data-search-link],
+    .tool--wide {
+      display: grid;
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .nav {
+      display: block;
+      margin-left: auto;
+    }
+    .switcher {
+      margin-inline: 24px 0;
+    }
+    .tools {
+      margin-left: 8px;
+    }
+    .tool--menu {
+      display: none;
+    }
+    .tools > [data-search-link] {
+      display: none;
+    }
+  }
+
+  /* ---- Мобильное меню (Popover API) ---- */
+  .menu {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--ink);
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(-12px);
+    transition:
+      opacity var(--dur-med) var(--ease-out),
+      transform var(--dur-med) var(--ease-out),
+      overlay var(--dur-med) allow-discrete,
+      display var(--dur-med) allow-discrete;
+  }
+
+  .menu:popover-open {
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    .menu:popover-open {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+  }
+
+  .menu__inner {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    padding-block: 8px 32px;
+  }
+
+  .menu__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--nav-h);
+  }
+
+  .menu nav {
+    margin-top: 24px;
+  }
+
+  .menu nav a {
+    display: block;
+    padding: 12px 0;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(2rem, 9vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--text-strong);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .menu nav a[aria-current='page'] {
+    color: var(--brass);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .menu:popover-open nav li {
+      animation: rise 600ms var(--ease-out) both;
+    }
+    .menu:popover-open nav li:nth-child(2) { animation-delay: 40ms; }
+    .menu:popover-open nav li:nth-child(3) { animation-delay: 80ms; }
+    .menu:popover-open nav li:nth-child(4) { animation-delay: 120ms; }
+    .menu:popover-open nav li:nth-child(5) { animation-delay: 160ms; }
+  }
+
+  .menu__foot {
+    margin-top: auto;
+    padding-top: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+</style>

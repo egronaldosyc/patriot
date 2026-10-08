@@ -1,0 +1,430 @@
+---
+// «Главное за день» — короткие истории из готовых постов: карусель карточек, полный текст в модальном окне.
+import Icon from './Icon.astro';
+import { dayMonth } from '../lib/dates.js';
+
+interface Props {
+  issue: any;
+  shareUrl: string;
+}
+const { issue, shareUrl } = Astro.props;
+const posts = issue.posts;
+
+function excerpt(text: string) {
+  const first = text.split(/\n\s*\n/)[0] ?? text;
+  return first.length > 220 ? first.slice(0, 220).replace(/\s+\S*$/, '') + '…' : first;
+}
+---
+{
+  posts.length > 0 && (
+    <section class="hl" id="glavnoe" aria-labelledby="hl-title">
+      <div class="wrap">
+        <div class="hl__head reveal">
+          <div>
+            <p class="kicker">Коротко</p>
+            <h2 id="hl-title" class="hl__title">Главное за день</h2>
+          </div>
+          <div class="hl__ctrl no-print" data-carousel-ctrl>
+            <button class="btn btn--quiet btn--icon" type="button" data-carousel-prev aria-label="Прокрутить назад">
+              <Icon name="chevron-left" />
+            </button>
+            <button class="btn btn--quiet btn--icon" type="button" data-carousel-next aria-label="Прокрутить вперёд">
+              <Icon name="chevron-right" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ol class="hl__track" data-carousel tabindex="0" aria-label="Короткие истории дня">
+        {posts.map((p: any, i: number) => (
+          <li class="card" id={p.anchor}>
+            <button class="card__hit" type="button" data-dialog-open={`dlg-${p.anchor}`} aria-haspopup="dialog">
+              <span class="card__media" data-media>
+                {p.image?.url ? (
+                  <img src={p.image.url} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-hide-on-error />
+                ) : null}
+                <span class="card__ph" aria-hidden="true">
+                  <span class="num">{String(i + 1).padStart(2, '0')}</span>
+                </span>
+              </span>
+              <span class="card__body">
+                <span class="card__n label num">{String(i + 1).padStart(2, '0')} / {String(posts.length).padStart(2, '0')}</span>
+                <span class="card__title">{p.title}</span>
+                <span class="card__ex">{excerpt(p.text)}</span>
+                <span class="card__more label">
+                  Читать <Icon name="arrow-right" />
+                </span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ol>
+
+      {posts.map((p: any) => (
+        <dialog class="dlg" id={`dlg-${p.anchor}`} aria-labelledby={`dlg-${p.anchor}-t`}>
+          <div class="dlg__sheet">
+            <div class="dlg__bar">
+              <span class="kicker">Главное · {dayMonth(issue.date)}</span>
+              <button class="btn btn--quiet btn--icon" type="button" data-dialog-close aria-label="Закрыть">
+                <Icon name="close" />
+              </button>
+            </div>
+            <article class="dlg__body">
+              {p.image?.url && (
+                <figure class="figure dlg__fig">
+                  <div class="figure__frame">
+                    <img src={p.image.url} alt={p.image.caption ?? ''} loading="lazy" decoding="async" referrerpolicy="no-referrer" data-hide-on-error />
+                  </div>
+                  {(p.image.caption || p.image.pageUrl) && (
+                    <figcaption>
+                      {p.image.caption}
+                      {[p.image.author, p.image.license].filter(Boolean).length > 0 && ` — ${[p.image.author, p.image.license].filter(Boolean).join(', ')}`}
+                      {p.image.pageUrl && (
+                        <>
+                          {'. '}
+                          <a href={p.image.pageUrl} target="_blank" rel="noopener noreferrer">Страница файла</a>
+                        </>
+                      )}
+                    </figcaption>
+                  )}
+                </figure>
+              )}
+              <h3 class="dlg__title" id={`dlg-${p.anchor}-t`}>{p.title}</h3>
+              <div class="dlg__text">{p.text}</div>
+              {p.hashtags.length > 0 && <p class="dlg__tags">{p.hashtags.join(' ')}</p>}
+              <div class="dlg__actions">
+                <button
+                  class="btn"
+                  type="button"
+                  data-share
+                  data-share-title={p.title}
+                  data-share-text={p.text.split(/\n\s*\n/)[0]}
+                  data-share-url={`${shareUrl}#${p.anchor}`}
+                >
+                  <Icon name="share" /> Поделиться
+                </button>
+                <button
+                  class="btn btn--quiet"
+                  type="button"
+                  data-copy={[p.title, p.text, p.hashtags.join(' ')].filter(Boolean).join('\n\n')}
+                  data-copy-label="Копировать текст"
+                >
+                  <Icon name="copy" /> <span>Копировать текст</span>
+                </button>
+                {p.sourceUrl && (
+                  <a class="btn btn--quiet" href={p.sourceUrl} target="_blank" rel="noopener noreferrer">
+                    Источник <Icon name="arrow-up-right" />
+                  </a>
+                )}
+              </div>
+            </article>
+          </div>
+        </dialog>
+      ))}
+    </section>
+  )
+}
+
+<style>
+  .hl {
+    margin-top: var(--section-gap);
+  }
+
+  .hl__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .hl__title {
+    margin-top: 10px;
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .hl__ctrl {
+    display: none;
+    gap: 8px;
+  }
+
+  @media (min-width: 900px) and (hover: hover) {
+    .hl__ctrl {
+      display: flex;
+    }
+  }
+
+  .hl__track {
+    --card-w: min(86vw, 360px);
+    list-style: none;
+    margin: 28px 0 0;
+    padding: 4px max(var(--gutter), calc((100vw - var(--wide)) / 2)) 12px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: var(--card-w);
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: max(var(--gutter), calc((100vw - var(--wide)) / 2));
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .hl__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hl__track:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .card {
+    scroll-snap-align: start;
+    display: flex;
+  }
+
+  .card__hit {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-std), background-color var(--dur-fast) var(--ease-std),
+      transform var(--dur-med) var(--ease-out);
+  }
+
+  .card__hit:hover {
+    border-color: var(--brass-dim);
+    background: var(--paper-2);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card__hit:hover {
+      transform: translateY(-4px);
+    }
+  }
+
+  .card__media {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-bottom: 1px solid var(--rule);
+    background: var(--ink-raised);
+  }
+
+  .card__media img {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 25%;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card__hit:hover .card__media img {
+      transform: scale(1.04);
+    }
+  }
+
+  .card__media.is-broken img {
+    display: none;
+  }
+
+  .card__ph {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 5rem;
+    font-weight: 600;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--brass-dim);
+    border-top: 3px solid var(--carmine);
+  }
+
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 20px 20px;
+    flex: 1;
+  }
+
+  .card__n {
+    color: var(--dim);
+  }
+
+  .card__title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.3rem;
+    line-height: 1.2;
+    color: var(--text-strong);
+    text-wrap: balance;
+  }
+
+  .card__ex {
+    font-size: 0.975rem;
+    line-height: 1.55;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card__more {
+    margin-top: auto;
+    padding-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--brass);
+  }
+
+  /* ---- Модальное окно ---- */
+  .dlg {
+    width: min(760px, 100vw);
+    max-width: 100vw;
+    max-height: min(92dvh, 100%);
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--rule);
+    background: var(--ink);
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(24px) scale(0.985);
+    transition:
+      opacity var(--dur-med) var(--ease-out),
+      transform var(--dur-med) var(--ease-out),
+      overlay var(--dur-med) allow-discrete,
+      display var(--dur-med) allow-discrete;
+  }
+
+  .dlg[open] {
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    .dlg[open] {
+      opacity: 0;
+      transform: translateY(24px) scale(0.985);
+    }
+  }
+
+  .dlg::backdrop {
+    background: rgb(5 6 8 / 0);
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
+    transition:
+      background-color var(--dur-med) var(--ease-out),
+      backdrop-filter var(--dur-med) var(--ease-out),
+      overlay var(--dur-med) allow-discrete,
+      display var(--dur-med) allow-discrete;
+  }
+
+  .dlg[open]::backdrop {
+    background: rgb(5 6 8 / 0.66);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  @starting-style {
+    .dlg[open]::backdrop {
+      background: rgb(5 6 8 / 0);
+      backdrop-filter: blur(0);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dlg {
+      margin: auto 0 0;
+      width: 100vw;
+      max-height: 94dvh;
+      border-inline: 0;
+      border-bottom: 0;
+      transform: translateY(40px);
+    }
+    @starting-style {
+      .dlg[open] {
+        transform: translateY(40px);
+      }
+    }
+  }
+
+  .dlg__sheet {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
+  }
+
+  .dlg__bar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 12px 8px 24px;
+    background: color-mix(in srgb, var(--ink) 92%, transparent);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .dlg__body {
+    padding: 24px 24px calc(28px + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+  }
+
+  .dlg__fig {
+    margin-bottom: 24px;
+  }
+
+  .dlg__fig img {
+    max-height: 48vh;
+    object-fit: contain;
+    background: var(--paper);
+  }
+
+  .dlg__title {
+    font-size: var(--fs-h3);
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .dlg__text {
+    margin-top: 16px;
+    white-space: pre-line;
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+  }
+
+  .dlg__tags {
+    margin-top: 18px;
+    font-family: var(--font-ui);
+    font-size: var(--fs-ui);
+    letter-spacing: 0.03em;
+    color: var(--brass);
+    overflow-wrap: anywhere;
+  }
+
+  .dlg__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule-soft);
+  }
+</style>

@@ -1,0 +1,31 @@
+{
+  "date": "2026-09-22",
+  "generated_at": "2026-09-21T06:20:00+03:00",
+  "day_month": "22 сентября",
+  "weekday": "вторник",
+  "title": "Тестовый выпуск без фотографий",
+  "lede": "Проверочный выпуск: ни одной фотографии, заполнено поле photo_note, у постов нет изображений.",
+  "epigraph": {"text": "Тестовая цитата без источника.", "author": "Проверка вёрстки", "source_url": null},
+  "hero_image": null,
+  "photo_note": "В этом выпуске фотографий нет: при его подготовке фотоархивы были недоступны для проверки.",
+  "sections": [
+    {"id": "dates", "title": "Календарь памятных дат", "subtitle": "Проверка без фото", "items": [
+      {"title": "Материал без фотографии", "date_label": "22 сентября 1941 года", "text": "Текст материала без изображения. Проверяется ритм вёрстки, когда фото нет.", "facts": ["Факт первый: 1941 год", "Факт второй: 12 дивизий"], "note": null, "url": "https://encyclopedia.mil.ru/", "source_name": "Энциклопедия Минобороны", "image": null}
+    ], "empty_note": null},
+    {"id": "vov", "title": "Великая Отечественная: этот день", "subtitle": "Тест", "items": [
+      {"title": "Второй материал", "date_label": "1943 год", "text": "Ещё один текст без фото.", "facts": [], "note": "Примечание мелким курсивом.", "url": "https://pamyat-naroda.ru/", "source_name": "Память народа", "image": null}
+    ], "empty_note": null},
+    {"id": "army", "title": "Летопись армии и флота", "subtitle": null, "items": [
+      {"title": "Петровская эпоха", "date_label": "11 (22) сентября 1709 года", "text": "Дата по старому стилю с пересчётом.", "facts": null, "note": null, "url": "https://bigenc.ru/", "source_name": null, "image": null}
+    ], "empty_note": null},
+    {"id": "security", "title": "Щит державы", "subtitle": null, "items": [], "empty_note": "За эту дату подтверждённых материалов по разделу не нашлось."},
+    {"id": "heroes", "title": "Герои", "subtitle": null, "items": [], "empty_note": null},
+    {"id": "svo", "title": "Специальная военная операция: хроника даты", "subtitle": null, "items": [], "empty_note": "Событий за эту дату не найдено."},
+    {"id": "weapons", "title": "Арсенал", "subtitle": null, "items": [], "empty_note": "Нет материалов."},
+    {"id": "word", "title": "Слово патриота", "subtitle": null, "items": [], "empty_note": "Нет подтверждённых цитат."}
+  ],
+  "posts": [
+    {"title": "Пост без фотографии", "text": "Первый абзац поста.\n\nВторой абзац поста — проверка сохранения абзацев.", "hashtags": ["#Патриот", "#Тест"], "image": null, "source_url": "https://encyclopedia.mil.ru/"}
+  ],
+  "image_credits": []
+}

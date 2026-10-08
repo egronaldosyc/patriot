@@ -1,0 +1,112 @@
+---
+// Фото с подписью. Нет прямого адреса — только подпись со ссылкой на страницу файла.
+// Не загрузилось — рамка скрывается (обработчик в Base.astro), подпись и ссылка остаются.
+interface Img {
+  url: string | null;
+  pageUrl: string | null;
+  caption: string | null;
+  author: string | null;
+  license: string | null;
+}
+interface Props {
+  image: Img;
+  variant?: 'hero' | 'inline';
+  eager?: boolean;
+  class?: string;
+}
+const { image, variant = 'inline', eager = false, class: cls } = Astro.props;
+const meta = [image.author, image.license].filter(Boolean).join(', ');
+---
+<figure class:list={['figure', `figure--${variant}`, cls, { 'figure--caption-only': !image.url }]}>
+  {
+    image.url && (
+      <div class="figure__frame">
+        <img
+          src={image.url}
+          alt={image.caption ?? ''}
+          loading={eager ? 'eager' : 'lazy'}
+          fetchpriority={eager ? 'high' : undefined}
+          decoding="async"
+          referrerpolicy="no-referrer"
+          data-hide-on-error
+        />
+      </div>
+    )
+  }
+  {
+    (image.caption || meta || image.pageUrl) && (
+      <figcaption>
+        {!image.url && <span class="label nophoto">Фото по ссылке · </span>}
+        {image.caption}
+        {meta && (image.caption ? ` — ${meta}` : meta)}
+        {image.pageUrl && (
+          <>
+            {image.caption || meta ? '. ' : ''}
+            <a href={image.pageUrl} target="_blank" rel="noopener noreferrer">Страница файла</a>
+          </>
+        )}
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .figure--hero .figure__frame {
+    aspect-ratio: 16 / 9;
+    border-inline: 0;
+  }
+
+  .figure--hero .figure__frame img {
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 35%;
+  }
+
+  @media (min-width: 900px) {
+    .figure--hero .figure__frame {
+      aspect-ratio: 21 / 9;
+      border-inline: 1px solid var(--rule);
+    }
+  }
+
+  /* Медленный «наезд» камеры при прокрутке — только где есть scroll-driven animations */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .figure--hero .figure__frame img {
+        animation: hero-drift linear both;
+        animation-timeline: view();
+        animation-range: cover 0% cover 100%;
+      }
+    }
+  }
+
+  @keyframes hero-drift {
+    from {
+      transform: scale(1.02) translateY(-1.5%);
+    }
+    to {
+      transform: scale(1.12) translateY(2.5%);
+    }
+  }
+
+  .figure--inline .figure__frame img {
+    max-height: min(78vh, 760px);
+    width: 100%;
+    object-fit: contain;
+    background: var(--paper);
+  }
+
+  .figure--inline .figure__frame img:hover {
+    transform: none;
+  }
+
+  .figure--caption-only figcaption {
+    margin-top: 0;
+    padding: 10px 14px;
+    border: 1px dashed var(--rule);
+  }
+
+  .nophoto {
+    color: var(--brass);
+  }
+</style>

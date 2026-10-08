@@ -1,0 +1,305 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { SECTION_ORDER, SECTION_META, ERAS } from '../lib/normalize.js';
+import { href } from '../lib/paths.js';
+
+const sections = ['Выпуск дня', ...SECTION_ORDER.map((id) => SECTION_META[id].short)];
+const eras = ERAS.map((e) => e.label);
+const hints = ['Сталинград', 'Жуков', 'Т-34', 'Севастополь', 'подводная лодка', 'Кавказ'];
+---
+<Base
+  title="Поиск по архиву — Патриот"
+  description="Поиск по всем выпускам военно-исторической летописи «Патриот»: события, имена, техника, города."
+  path="search/"
+>
+  <section class="wrap page-head intro">
+    <p class="kicker">Весь архив</p>
+    <h1>Поиск</h1>
+  </section>
+
+  <div class="wrap search" data-search data-base={href('')}>
+    <form class="box" role="search" action={href('search/')} method="get">
+      <label class="visually-hidden" for="q">Поиск по архиву</label>
+      <Icon name="search" class="box__icon" />
+      <input
+        id="q"
+        name="q"
+        type="search"
+        inputmode="search"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="Событие, имя, город, техника"
+        data-search-input
+        enterkeyhint="search"
+      />
+      <button class="box__clear" type="button" data-clear aria-label="Очистить" hidden>
+        <Icon name="close" />
+      </button>
+    </form>
+
+    <div class="filters">
+      <div class="filter" role="group" aria-label="Раздел">
+        <span class="label dim filter__name">Раздел</span>
+        <div class="filter__chips" data-filter="section">
+          {sections.map((s) => (
+            <button class="chip" type="button" data-value={s} aria-pressed="false">
+              {s} <span class="count" data-count />
+            </button>
+          ))}
+        </div>
+      </div>
+      <div class="filter" role="group" aria-label="Эпоха">
+        <span class="label dim filter__name">Эпоха</span>
+        <div class="filter__chips" data-filter="era">
+          {eras.map((e) => (
+            <button class="chip" type="button" data-value={e} aria-pressed="false">
+              {e} <span class="count" data-count />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <p class="status label" data-status aria-live="polite"></p>
+
+    <div class="hints" data-hints>
+      <p class="label dim">Например</p>
+      <div class="hints__list">
+        {hints.map((h) => (
+          <button class="chip" type="button" data-hint={h}>
+            {h}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <ol class="results" data-results role="list"></ol>
+    <div class="more">
+      <button class="btn btn--quiet" type="button" data-more hidden>Показать ещё</button>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .search {
+    max-width: calc(980px + var(--gutter) * 2);
+    margin-inline: 0;
+  }
+
+  @media (min-width: 1240px) {
+    .search {
+      margin-inline: auto;
+      max-width: calc(var(--wide) + var(--gutter) * 2);
+    }
+  }
+
+  .box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid var(--rule);
+    transition: border-color var(--dur-med) var(--ease-out);
+  }
+
+  .box:focus-within {
+    border-bottom-color: var(--brass);
+  }
+
+  .box :global(.box__icon) {
+    width: 28px;
+    height: 28px;
+    color: var(--muted);
+  }
+
+  .box input {
+    flex: 1;
+    min-width: 0;
+    padding: 18px 16px;
+    border: 0;
+    background: transparent;
+    color: var(--text-strong);
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 1rem + 2.4vw, 2.75rem);
+    letter-spacing: 0.01em;
+    outline: none;
+  }
+
+  .box input::placeholder {
+    color: var(--dim);
+  }
+
+  .box input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .box__clear {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .box__clear:hover {
+    color: var(--brass);
+  }
+
+  .filters {
+    display: grid;
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .filter {
+    display: grid;
+    gap: 8px;
+  }
+
+  @media (min-width: 760px) {
+    .filter {
+      grid-template-columns: 90px 1fr;
+      align-items: start;
+    }
+    .filter__name {
+      padding-top: 10px;
+    }
+  }
+
+  .filter__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media (max-width: 759px) {
+    .filter__chips {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+    }
+    .filter__chips::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .chip[data-empty] {
+    opacity: 0.45;
+  }
+
+  .status {
+    margin-top: 28px;
+    min-height: 1.3em;
+    color: var(--muted);
+  }
+
+  .hints {
+    margin-top: 12px;
+  }
+
+  .hints__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .results {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    max-width: 980px;
+  }
+
+  .results :global(.r) {
+    display: grid;
+    gap: 16px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    text-decoration: none;
+  }
+
+  @media (min-width: 640px) {
+    .results :global(.r.has-media) {
+      grid-template-columns: 1fr 180px;
+      gap: 28px;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .results :global(li) {
+      animation: rise 520ms var(--ease-out) both;
+    }
+  }
+
+  .results :global(.r__meta) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    color: var(--dim);
+  }
+
+  .results :global(.r__sec) {
+    color: var(--brass);
+  }
+
+  .results :global(.r__title) {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    line-height: 1.22;
+    color: var(--text-strong);
+  }
+
+  .results :global(.r:hover .r__title) {
+    color: var(--brass);
+  }
+
+  .results :global(.r__ex) {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 0.975rem;
+    line-height: 1.55;
+  }
+
+  .results :global(mark) {
+    background: none;
+    color: var(--text-strong);
+    box-shadow: inset 0 -0.35em 0 color-mix(in srgb, var(--brass) 38%, transparent);
+  }
+
+  .results :global(.r__media) {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+  }
+
+  .results :global(.r__media.is-broken) {
+    display: none;
+  }
+
+  .results :global(.r__media img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 22%;
+  }
+
+  .more {
+    margin-top: 32px;
+  }
+</style>
+
+<script>
+  import { initSearch } from '../scripts/search.js';
+  initSearch();
+</script>

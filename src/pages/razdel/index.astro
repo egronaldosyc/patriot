@@ -1,0 +1,149 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { SECTION_ORDER, SECTION_META } from '../../lib/normalize.js';
+import { itemsBySection } from '../../lib/issues.js';
+import { count } from '../../lib/dates.js';
+import { sectionHref, issueHref } from '../../lib/paths.js';
+
+const sections = SECTION_ORDER.map((id, i) => {
+  const entries = itemsBySection(id);
+  return { id, n: String(i + 1).padStart(2, '0'), ...SECTION_META[id], total: entries.length, latest: entries.slice(0, 3) };
+});
+---
+<Base
+  title="Разделы — Патриот"
+  description="Восемь постоянных разделов летописи: памятные даты, Великая Отечественная, армия и флот, щит державы, герои, СВО, арсенал, слово патриота."
+  path="razdel/"
+>
+  <section class="wrap page-head intro">
+    <p class="kicker">Рубрики летописи</p>
+    <h1>Разделы</h1>
+    <p>Каждый выпуск состоит из восьми постоянных разделов. Здесь они собраны сквозь весь архив.</p>
+  </section>
+
+  <ol class="wrap grid" role="list">
+    {
+      sections.map((s) => (
+        <li class="reveal">
+          <article class="sc">
+            <a class="sc__head" href={sectionHref(s.id)}>
+              <span class="sc__n num" aria-hidden="true">{s.n}</span>
+              <span class="sc__titles">
+                <span class="sc__title">{s.short}</span>
+                <span class="label muted num">{count(s.total, 'материал', 'материала', 'материалов')}</span>
+              </span>
+              <Icon name="arrow-right" class="sc__go" />
+            </a>
+            <p class="sc__about">{s.about}</p>
+            {s.latest.length > 0 && (
+              <ul class="sc__latest" role="list">
+                {s.latest.map(({ issue, item }) => (
+                  <li>
+                    <a href={issueHref(issue.date, item.anchor)}>{item.title}</a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </article>
+        </li>
+      ))
+    }
+  </ol>
+</Base>
+
+<style>
+  .grid {
+    list-style: none;
+    margin-top: 0;
+    margin-bottom: 0;
+    display: grid;
+    gap: 16px;
+  }
+
+  @media (min-width: 860px) {
+    .grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .sc {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+  }
+
+  .sc__head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: 18px;
+    text-decoration: none;
+  }
+
+  .sc__n {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 4rem;
+    line-height: 0.85;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--brass);
+  }
+
+  .sc__titles {
+    display: grid;
+    gap: 6px;
+  }
+
+  .sc__title {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    line-height: 1.1;
+    color: var(--text-strong);
+    transition: color var(--dur-fast) var(--ease-std);
+  }
+
+  .sc__head:hover .sc__title {
+    color: var(--brass);
+  }
+
+  .sc__head :global(.sc__go) {
+    color: var(--brass);
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+
+  .sc__head:hover :global(.sc__go) {
+    transform: translateX(4px);
+  }
+
+  .sc__about {
+    color: var(--muted);
+    font-size: 0.975rem;
+  }
+
+  .sc__latest {
+    list-style: none;
+    margin: auto 0 0;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--rule-soft);
+    display: grid;
+  }
+
+  .sc__latest a {
+    display: block;
+    padding: 8px 0;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    line-height: 1.35;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .sc__latest a:hover {
+    color: var(--brass);
+  }
+</style>
